@@ -21,6 +21,10 @@
 #include <vppinfra/interrupt.h>
 #include <vppinfra/linux/sysfs.h>
 #include <vlib/vlib.h>
+#ifdef __FreeBSD__
+#include <sys/cpuset.h>
+#include <pthread_np.h>
+#endif
 
 #include <vlib/threads.h>
 
@@ -264,10 +268,17 @@ vlib_thread_init (vlib_main_t * vm)
     }
   else
     {
+#ifndef __FreeBSD__
       cpu_set_t cpuset;
       CPU_ZERO (&cpuset);
       CPU_SET (tm->main_lcore, &cpuset);
       pthread_setaffinity_np (pthread_self (), sizeof (cpu_set_t), &cpuset);
+#else
+      cpuset_t cpuset;
+      CPU_ZERO (&cpuset);
+      CPU_SET (tm->main_lcore, &cpuset);
+      pthread_setaffinity_np (pthread_self (), sizeof (cpuset_t), &cpuset);
+#endif
     }
 
   /* Set up thread 0 */
@@ -277,7 +288,11 @@ vlib_thread_init (vlib_main_t * vm)
   w->thread_mheap = clib_mem_get_heap ();
   w->thread_stack = vlib_thread_stacks[0];
   w->cpu_id = tm->main_lcore;
+#ifndef __FreeBSD__
   w->lwp = syscall (SYS_gettid);
+#else
+  w->lwp = pthread_getthreadid_np();
+#endif
   w->thread_id = pthread_self ();
   tm->n_vlib_mains = 1;
 
@@ -577,7 +592,11 @@ vlib_worker_thread_bootstrap_fn (void *arg)
   void *rv;
   vlib_worker_thread_t *w = arg;
 
+#ifndef __FreeBSD__
   w->lwp = syscall (SYS_gettid);
+#else
+  w->lwp = pthread_getthreadid_np();
+#endif
   w->thread_id = pthread_self ();
 
   __os_thread_index = w - vlib_worker_threads;
@@ -659,16 +678,28 @@ vlib_launch_thread_int (void *fp, vlib_worker_thread_t * w, unsigned cpu_id)
     return tm->cb.vlib_launch_thread_cb (fp, (void *) w, cpu_id);
   else
     {
+#ifndef __FreeBSD__
       pthread_t worker;
       cpu_set_t cpuset;
       CPU_ZERO (&cpuset);
       CPU_SET (cpu_id, &cpuset);
+#else
+      pthread_t worker;
+      cpuset_t cpuset;
+      CPU_ZERO (&cpuset);
+      CPU_SET (cpu_id, &cpuset);
+#endif
 
       if (pthread_create (&worker, NULL /* attr */ , fp_arg, (void *) w))
 	return clib_error_return_unix (0, "pthread_create");
 
+#ifndef __FreeBSD__
       if (pthread_setaffinity_np (worker, sizeof (cpu_set_t), &cpuset))
 	return clib_error_return_unix (0, "pthread_setaffinity_np");
+#else
+      if (pthread_setaffinity_np (worker, sizeof (cpuset_t), &cpuset))
+	return clib_error_return_unix (0, "pthread_setaffinity_np");
+#endif
 
       return 0;
     }
