@@ -17,7 +17,11 @@
 
 #include <vlib/main.h>
 #include <vppinfra/callback.h>
+#ifndef __FreeBSD__
 #include <linux/sched.h>
+#else
+#include <sched.h>
+#endif
 
 extern vlib_main_t **vlib_mains;
 
@@ -262,12 +266,20 @@ do {                                                    \
   vec_free (__vlib_mains);                              \
 } while (0);
 
+#ifndef __FreeBSD__
 #define foreach_sched_policy \
   _(SCHED_OTHER, OTHER, "other") \
   _(SCHED_BATCH, BATCH, "batch") \
   _(SCHED_IDLE, IDLE, "idle")   \
   _(SCHED_FIFO, FIFO, "fifo")   \
   _(SCHED_RR, RR, "rr")
+#else
+#define foreach_sched_policy \
+  _(SCHED_OTHER, OTHER, "other") \
+  _(SCHED_FIFO, FIFO, "fifo")   \
+  _(SCHED_RR, RR, "rr")
+
+#endif
 
 typedef enum
 {
