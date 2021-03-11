@@ -17,7 +17,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifndef __FreeBSD__
 #include <linux/vfio.h>
+#endif
 #include <sys/ioctl.h>
 
 #include <vppinfra/linux/sysfs.h>
@@ -39,6 +41,7 @@ vfio_map_physmem_page (vlib_main_t * vm, void *addr)
 {
   vlib_physmem_main_t *vpm = &vm->physmem_main;
   linux_vfio_main_t *lvm = &vfio_main;
+#ifndef __FreeBSD__
   struct vfio_iommu_type1_dma_map dm = { 0 };
   uword log2_page_size = vpm->pmalloc_main->def_log2_page_sz;
   uword physmem_start = pointer_to_uword (vpm->pmalloc_main->base);
@@ -73,6 +76,7 @@ vfio_map_physmem_page (vlib_main_t * vm, void *addr)
 
   lvm->physmem_pages_mapped = clib_bitmap_set (lvm->physmem_pages_mapped,
 					       page_index, 1);
+#endif
   return 0;
 }
 
@@ -93,6 +97,7 @@ open_vfio_iommu_group (int group, int is_noiommu)
   linux_vfio_main_t *lvm = &vfio_main;
   linux_pci_vfio_iommu_group_t *g;
   clib_error_t *err = 0;
+#ifndef __FreeBSD__
   struct vfio_group_status group_status;
   u8 *s = 0;
   int fd;
@@ -171,6 +176,9 @@ open_vfio_iommu_group (int group, int is_noiommu)
 error:
   close (fd);
   return err;
+#else
+  return 0;
+#endif
 }
 
 clib_error_t *
@@ -221,12 +229,14 @@ linux_vfio_group_get_device_fd (vlib_pci_addr_t * addr, int *fdp,
   g = get_vfio_iommu_group (iommu_group);
 
   s = format (s, "%U%c", format_vlib_pci_addr, addr, 0);
+#ifndef __FreeBSD__
   if ((fd = ioctl (g->fd, VFIO_GROUP_GET_DEVICE_FD, (char *) s)) < 0)
     {
       err = clib_error_return_unix (0, "ioctl(VFIO_GROUP_GET_DEVICE_FD) '%U'",
 				    format_vlib_pci_addr, addr);
       goto error;
     }
+#endif
   vec_reset_length (s);
 
   *fdp = fd;
@@ -250,6 +260,7 @@ linux_vfio_init (vlib_main_t * vm)
 u8 *
 format_vfio_region_info (u8 * s, va_list * args)
 {
+#ifndef __FreeBSD__
   struct vfio_region_info *r = va_arg (*args, struct vfio_region_info *);
 
   s = format (s, "region_info index:%u size:0x%lx offset:0x%lx flags:",
@@ -301,6 +312,9 @@ format_vfio_region_info (u8 * s, va_list * args)
 #endif
 
   return s;
+#else
+  return 0;
+#endif
 }
 
 /*
