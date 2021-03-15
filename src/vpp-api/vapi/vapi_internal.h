@@ -18,7 +18,11 @@
 #ifndef VAPI_INTERNAL_H
 #define VAPI_INTERNAL_H
 
+#ifndef __FreeBSD__
 #include <endian.h>
+#else
+#include <sys/endian.h>
+#endif
 #include <string.h>
 #include <vppinfra/types.h>
 
