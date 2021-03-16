@@ -145,7 +145,7 @@ typedef struct _transport_connection
 #define c_opaque_id connection.opaque_conn_id
 #define c_stats connection.stats
 #define c_pacer connection.pacer
-#define c_flags connection.flags
+#define co_flags connection.flags
 #define s_ho_handle pacer.bytes_per_sec
 #define c_s_ho_handle connection.pacer.bytes_per_sec
 } transport_connection_t;

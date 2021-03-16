@@ -206,7 +206,7 @@ udp_session_bind (u32 session_index, transport_endpoint_t * lcl)
   if (lcl_ext->transport_flags & TRANSPORT_CFG_F_CONNECTED)
     listener->flags |= UDP_CONN_F_CONNECTED;
   else
-    listener->c_flags |= TRANSPORT_CONNECTION_F_CLESS;
+    listener->co_flags |= TRANSPORT_CONNECTION_F_CLESS;
   clib_spinlock_init (&listener->rx_lock);
 
   udp_connection_register_port (vm, lcl_port_ho, lcl->is_ip4);
@@ -395,7 +395,7 @@ conn_alloc:
   else
     {
       clib_spinlock_init (&uc->rx_lock);
-      uc->c_flags |= TRANSPORT_CONNECTION_F_CLESS;
+      uc->co_flags |= TRANSPORT_CONNECTION_F_CLESS;
     }
 
   return uc->c_c_index;

@@ -461,7 +461,7 @@ tls_session_accept_callback (session_t * tls_session)
   tls_session->opaque = ctx_handle;
   ctx->tls_session_handle = session_handle (tls_session);
   ctx->listener_ctx_index = tls_listener->opaque;
-  ctx->c_flags |= TRANSPORT_CONNECTION_F_NO_LOOKUP;
+  ctx->co_flags |= TRANSPORT_CONNECTION_F_NO_LOOKUP;
   ctx->ckpair_index = lctx->ckpair_index;
 
   /* Preallocate app session. Avoids allocating a session post handshake
@@ -537,7 +537,7 @@ tls_session_connected_cb (u32 tls_app_index, u32 ho_ctx_index,
 
   ctx->c_thread_index = vlib_get_thread_index ();
   ctx->tls_ctx_handle = ctx_handle;
-  ctx->c_flags |= TRANSPORT_CONNECTION_F_NO_LOOKUP;
+  ctx->co_flags |= TRANSPORT_CONNECTION_F_NO_LOOKUP;
 
   TLS_DBG (1, "TCP connect for %u returned %u. New connection [%u]%x",
 	   ho_ctx_index, err, vlib_get_thread_index (),
@@ -568,7 +568,7 @@ dtls_session_connected_cb (u32 app_wrk_index, u32 ctx_handle, session_t *us,
   ctx = tls_ctx_get_w_thread (ctx_handle, 1 /* udp allocs on thread 1 */);
 
   ctx->tls_session_handle = session_handle (us);
-  ctx->c_flags |= TRANSPORT_CONNECTION_F_NO_LOOKUP;
+  ctx->co_flags |= TRANSPORT_CONNECTION_F_NO_LOOKUP;
   us->opaque = ctx_handle;
 
   /* We don't preallocate the app session because the udp session might
