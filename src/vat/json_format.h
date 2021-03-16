@@ -22,6 +22,10 @@
 
 #include <vppinfra/clib.h>
 #include <vppinfra/format.h>
+#ifdef __FreeBSD__
+#include <netinet/in.h>
+#include <sys/socket.h>
+#endif
 #include <netinet/ip.h>
 
 /* JSON value type */
