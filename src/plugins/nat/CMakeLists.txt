@@ -187,8 +187,8 @@ if("${CMAKE_VERSION}" VERSION_GREATER_EQUAL "3.13" AND "${CMAKE_C_COMPILER_ID}" 
   set(COV_SOURCES ${CMAKE_SOURCE_DIR}/plugins/nat/pnat/pnat.c ${CMAKE_SOURCE_DIR}/plugins/nat/pnat/pnat_node.h ${CMAKE_SOURCE_DIR}/plugins/nat/pnat/pnat_node.c)
 
   message("Building with llvm Code Coverage Tools ${TARGET_NAME}")
-  target_compile_options(${TARGET_NAME} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-  target_link_options(${TARGET_NAME} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+# target_compile_options(${TARGET_NAME} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+# target_link_options(${TARGET_NAME} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
   target_compile_options(${TARGET_NAME} PRIVATE -fsanitize=address)
   target_link_options(${TARGET_NAME} PRIVATE -fsanitize=address)
 
