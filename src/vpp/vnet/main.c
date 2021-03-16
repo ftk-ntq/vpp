@@ -28,6 +28,11 @@
 #include <vpp/api/vpe_msg_enum.h>
 #include <limits.h>
 
+#ifdef __FreeBSD__
+#include <sys/cpuset.h>
+#include <pthread_np.h>
+#endif
+
 /*
  * Load plugins from /usr/lib/vpp_plugins by default
  */
@@ -115,7 +120,11 @@ main (int argc, char *argv[])
   unformat_input_t input, sub_input;
   u8 *s = 0, *v = 0;
   int main_core = 1;
+#ifndef __FreeBSD__
   cpu_set_t cpuset;
+#else
+  cpuset_t cpuset;
+#endif
   void *main_heap;
 
 #if __x86_64__
@@ -316,7 +325,11 @@ defaulted:
   /* set process affinity for main thread */
   CPU_ZERO (&cpuset);
   CPU_SET (main_core, &cpuset);
+#ifndef __FreeBSD__
   pthread_setaffinity_np (pthread_self (), sizeof (cpu_set_t), &cpuset);
+#else
+  pthread_setaffinity_np (pthread_self (), sizeof (cpuset_t), &cpuset);
+#endif
 
   /* Set up the plugin message ID allocator right now... */
   vl_msg_api_set_first_available_msg_id (VL_MSG_FIRST_AVAILABLE);
