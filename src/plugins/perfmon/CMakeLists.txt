@@ -19,13 +19,13 @@ add_vpp_plugin(perfmon
   SOURCES
   cli.c
   dispatch_wrapper.c
-  linux.c
-  perfmon.c
+#  linux.c
+#  perfmon.c
   table.c
-  intel/core.c
-  intel/uncore.c
-  intel/bundle/inst_and_clock.c
-  intel/bundle/load_blocks.c
-  intel/bundle/mem_bw.c
-  intel/bundle/cache_hit_miss.c
+#  intel/core.c
+#  intel/uncore.c
+#  intel/bundle/inst_and_clock.c
+#  intel/bundle/load_blocks.c
+#  intel/bundle/mem_bw.c
+#  intel/bundle/cache_hit_miss.c
 )

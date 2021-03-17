@@ -19,7 +19,9 @@
 #include <vlibmemory/api.h>
 #include <vnet/plugin/plugin.h>
 #include <vpp/app/version.h>
+#ifndef __FreeBSD__
 #include <linux/limits.h>
+#endif
 #include <sys/ioctl.h>
 
 #include <perfmon/perfmon.h>
@@ -51,7 +53,11 @@ perfmon_read_pmcs (u64 *counters, int *pmc_index, u8 n_counters)
 static_always_inline int
 perfmon_calc_pmc_index (perfmon_thread_runtime_t *tr, u8 i)
 {
+#ifndef __FreeBSD__
   return (int) (tr->mmap_pages[i]->index + tr->mmap_pages[i]->offset);
+#else
+  return 0;
+#endif
 }
 
 uword
