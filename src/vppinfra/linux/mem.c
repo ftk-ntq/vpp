@@ -149,7 +149,12 @@ clib_mem_main_init ()
   mm->log2_page_sz = min_log2 (page_size);
 
   /* default system hugeppage size */
+#ifndef __FreeBSD__
   if ((fd = memfd_create ("test", MFD_HUGETLB)) != -1)
+#else
+  /* For FreeBSD we have to specify the size of the memfd to create */
+  if ((fd = memfd_create ("test", MFD_HUGETLB|MFD_HUGE_1GB)) != -1)
+#endif
     {
       mm->log2_default_hugepage_sz = clib_mem_get_fd_log2_page_size (fd);
       close (fd);
