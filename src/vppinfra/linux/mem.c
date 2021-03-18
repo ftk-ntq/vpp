@@ -79,6 +79,10 @@ map_unlock ()
 __clib_export uword
 clib_mem_get_default_hugepage_size (void)
 {
+#if defined(__FreeBSD__)
+  static u32 size = 0;
+  size = 2048;
+#else
   unformat_input_t input;
   static u32 size = 0;
   int fd;
@@ -107,6 +111,7 @@ clib_mem_get_default_hugepage_size (void)
   unformat_free (&input);
   close (fd);
 done:
+#endif
   return 1024ULL * size;
 }
 
@@ -153,7 +158,7 @@ clib_mem_main_init ()
   if ((fd = memfd_create ("test", MFD_HUGETLB)) != -1)
 #else
   /* For FreeBSD we have to specify the size of the memfd to create */
-  if ((fd = memfd_create ("test", MFD_HUGETLB|MFD_HUGE_1GB)) != -1)
+  if ((fd = memfd_create ("test", MFD_HUGETLB|MFD_HUGE_2MB)) != -1)
 #endif
     {
       mm->log2_default_hugepage_sz = clib_mem_get_fd_log2_page_size (fd);
