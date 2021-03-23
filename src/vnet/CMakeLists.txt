@@ -26,7 +26,7 @@ list(APPEND VNET_SOURCES
   buffer.c
   config.c
   devices/devices.c
-  devices/netlink.c
+#  devices/netlink.c
   flow/flow.c
   flow/flow_cli.c
   flow/flow_api.c
@@ -1017,7 +1017,7 @@ list(APPEND VNET_MULTIARCH_SOURCES
   devices/virtio/vhost_user_input.c
   devices/virtio/vhost_user_output.c
   devices/virtio/node.c
-  devices/af_packet/node.c
+#  devices/af_packet/node.c
   devices/virtio/device.c
 )
 
@@ -1122,19 +1122,19 @@ list(APPEND VNET_HEADERS
 ##############################################################################
 
 list(APPEND VNET_SOURCES
-  devices/af_packet/af_packet.c
-  devices/af_packet/device.c
-  devices/af_packet/node.c
-  devices/af_packet/cli.c
-  devices/af_packet/af_packet_api.c
+#  devices/af_packet/af_packet.c
+#  devices/af_packet/device.c
+#  devices/af_packet/node.c
+#  devices/af_packet/cli.c
+#  devices/af_packet/af_packet_api.c
 )
 
 list(APPEND VNET_MULTIARCH_SOURCES
-  devices/af_packet/device.c
+#  devices/af_packet/device.c
 )
 
 list(APPEND VNET_HEADERS
-  devices/af_packet/af_packet.h
+#  devices/af_packet/af_packet.h
 )
 
 list(APPEND VNET_API_FILES devices/af_packet/af_packet.api)
