@@ -1161,14 +1161,14 @@ list(APPEND VNET_API_FILES feature/feature.api)
 
 # FIXME: unix/hgshm.c
 
-list(APPEND VNET_SOURCES
-  unix/gdb_funcs.c
-  unix/tuntap.c
-)
-
-list(APPEND VNET_HEADERS
-  unix/tuntap.h
-)
+#list(APPEND VNET_SOURCES
+#  unix/gdb_funcs.c
+#  unix/tuntap.c
+#)
+#
+#list(APPEND VNET_HEADERS
+#  unix/tuntap.h
+#)
 
 ##############################################################################
 # FIB
