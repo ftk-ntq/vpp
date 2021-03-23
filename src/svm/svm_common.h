@@ -81,6 +81,12 @@ typedef struct svm_map_region_args_
 /*
  * Memory mapped to high addresses for session/vppcom/vcl/etc...
  */
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#ifndef __WORDSIZE
+#define __WORDSIZE              64
+#endif
+#endif
 #if __WORDSIZE == 64
 #ifdef CLIB_SANITIZE_ADDR
 #define HIGH_SEGMENT_BASEVA 0x300000000000	/* DO NOT CHANGE THIS: YOU'LL BREAK ASAN */

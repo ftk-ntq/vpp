@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#endif
 #include <vlibmemory/api.h>
 
 #include <vnet/l2/l2_arp_term.h>
