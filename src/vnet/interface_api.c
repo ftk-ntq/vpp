@@ -396,7 +396,9 @@ vl_api_sw_interface_dump_t_handler (vl_api_sw_interface_dump_t * mp)
       vec_add1 (filter, 0);	/* Ensure it's a C string for strcasecmp() */
     }
 
+#ifndef __FreeBSD__
   char *strcasestr (char *, char *);	/* lnx hdr file botch */
+#endif
   /* *INDENT-OFF* */
   pool_foreach (swif, im->sw_interfaces)
    {
