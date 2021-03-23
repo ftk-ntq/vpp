@@ -15,7 +15,9 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
+#ifndef __FreeBSD__
 #include <sys/epoll.h>
+#endif
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <termios.h>

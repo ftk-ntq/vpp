@@ -44,7 +44,9 @@
 #include <vppinfra/tw_timer_1t_3w_1024sl_ov.h>
 
 /* FIXME autoconf */
+#ifndef __FreeBSD__
 #define HAVE_LINUX_EPOLL
+#endif
 
 #ifdef HAVE_LINUX_EPOLL
 

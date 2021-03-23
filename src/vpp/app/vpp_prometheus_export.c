@@ -18,7 +18,9 @@
  */
 
 #include <arpa/inet.h>
+#ifndef __FreeBSD__
 #include <sys/epoll.h>
+#endif
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
