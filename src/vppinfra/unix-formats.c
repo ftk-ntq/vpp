@@ -73,6 +73,9 @@
 
 #endif /* ! __KERNEL__ */
 
+#ifdef __FreeBSD__
+#include <vppinfra/freebsd/freebsd-formats.h>
+#endif
 
 #ifdef __KERNEL__
 # include <linux/socket.h>
@@ -288,9 +291,14 @@ u8 * format_sockaddr (u8 * s, va_list * args)
 u8 * format_tcp4_packet (u8 * s, va_list * args)
 {
   u8 * p = va_arg (*args, u8 *);
+#ifndef __FreeBSD__
   struct iphdr * ip = (void *) p;
+#else
+  struct ip * ip = (void *) p;
+#endif
   struct tcphdr * tcp = (void *) (ip + 1);
 
+#ifndef __FreeBSD__
   s = format (s, "tcp %U:%U -> %U:%U",
 	      format_network_address, AF_INET,  &ip->saddr,
 	      format_network_port, IPPROTO_TCP, ntohs (tcp->source),
@@ -306,6 +314,23 @@ u8 * format_tcp4_packet (u8 * s, va_list * args)
     s = format (s, ", window 0x%04x", tcp->window);
   if (tcp->urg)
     s = format (s, ", urg 0x%04x", tcp->urg_ptr);
+#else
+  s = format (s, "tcp %U:%U -> %U:%U",
+	      format_network_address, AF_INET,  &ip->ip_src,
+	      format_network_port, IPPROTO_TCP, ntohs (tcp->th_sport),
+	      format_network_address, AF_INET,  &ip->ip_dst,
+	      format_network_port, IPPROTO_TCP, ntohs (tcp->th_dport));
+
+  s = format (s, ", seq 0x%08x -> 0x%08x", tcp->th_seq, tcp->th_ack);
+#define _(f) if (tcp->th_flags & TH_##f) s = format (s, ", " #f);
+  _ (SYN); _ (ACK); _ (FIN); _ (RST); _ (PUSH); _ (URG);
+#undef _
+
+  if (tcp->th_win)
+    s = format (s, ", window 0x%04x", tcp->th_win);
+  if (tcp->th_urp)
+    s = format (s, ", urg 0x%04x", tcp->th_urp);
+#endif
 
   return s;
 }
@@ -313,13 +338,24 @@ u8 * format_tcp4_packet (u8 * s, va_list * args)
 u8 * format_udp4_packet (u8 * s, va_list * args)
 {
   u8 * p = va_arg (*args, u8 *);
+#ifndef __FreeBSD__
   struct iphdr * ip = (void *) p;
+#else
+  struct ip * ip = (void *) p;
+#endif
   struct udphdr * udp = (void *) (ip + 1);
 
+#ifndef __FreeBSD__
   s = format (s, "udp %U:%U -> %U:%U", format_network_address, AF_INET,
 	      &ip->saddr, format_network_port, IPPROTO_UDP,
 	      ntohs (udp->source), format_network_address, AF_INET, &ip->daddr,
 	      format_network_port, IPPROTO_UDP, ntohs (udp->dest));
+#else
+  s = format (s, "udp %U:%U -> %U:%U", format_network_address, AF_INET,
+	      &ip->ip_src, format_network_port, IPPROTO_UDP,
+	      ntohs (udp->uh_sport), format_network_address, AF_INET, &ip->ip_dst,
+	      format_network_port, IPPROTO_UDP, ntohs (udp->uh_dport));
+#endif
 
   return s;
 }
@@ -415,13 +451,23 @@ typedef struct {
 u8 * format_icmp4_packet (u8 * s, va_list * args)
 {
   u8 * p = va_arg (*args, u8 *);
+#ifndef __FreeBSD__
   struct iphdr * ip = (void *) p;
+#else
+  struct ip * ip = (void *) p;
+#endif
   icmp4_t * icmp = (void *) (ip + 1);
+#ifndef __FreeBSD__
   s = format (s, "icmp %U %U -> %U",
 	      format_icmp4_type_and_code, icmp->type, icmp->code,
 	      format_network_address, AF_INET,  &ip->saddr,
 	      format_network_address, AF_INET,  &ip->daddr);
-
+#else
+  s = format (s, "icmp %U %U -> %U",
+	      format_icmp4_type_and_code, icmp->type, icmp->code,
+	      format_network_address, AF_INET,  &ip->ip_src,
+	      format_network_address, AF_INET,  &ip->ip_dst);
+#endif
   return s;
 }
 
@@ -458,7 +504,11 @@ u8 * format_ip4_tos_byte (u8 * s, va_list * args)
 u8 * format_ip4_packet (u8 * s, va_list * args)
 {
   u8 * p = va_arg (*args, u8 *);
+#ifndef __FreeBSD__
   struct iphdr * ip = (void *) p;
+#else
+  struct ip * ip = (void *) p;
+#endif
 
   static format_function_t * f[256];
 
@@ -468,7 +518,7 @@ u8 * format_ip4_packet (u8 * s, va_list * args)
       f[IPPROTO_UDP] = format_udp4_packet;
       f[IPPROTO_ICMP] = format_icmp4_packet;
     }
-
+#ifndef __FreeBSD__
   if (f[ip->protocol])
     return format (s, "%U", f[ip->protocol], p);
 
@@ -476,6 +526,15 @@ u8 * format_ip4_packet (u8 * s, va_list * args)
 	      format_network_protocol, AF_INET, ip->protocol,
 	      format_network_address, AF_INET,  &ip->saddr,
 	      format_network_address, AF_INET,  &ip->daddr);
+#else
+  if (f[ip->ip_p])
+    return format (s, "%U", f[ip->ip_p], p);
+
+  s = format (s, "%U: %U -> %U",
+	      format_network_protocol, AF_INET, ip->ip_p,
+	      format_network_address, AF_INET,  &ip->ip_src,
+	      format_network_address, AF_INET,  &ip->ip_dst);
+#endif
 
   return s;
 }
@@ -717,8 +776,13 @@ u8 * format_ethernet_proto (u8 * s, va_list * args)
 
 u8 * format_ethernet_packet (u8 * s, va_list * args)
 {
+#ifndef __FreeBSD__
   struct ethhdr * h = va_arg (*args, struct ethhdr *);
   uword proto = h->h_proto;
+#else
+  struct ether_header * h = va_arg (*args, struct ether_header *);
+  uword proto = h->ether_type;
+#endif
   u8 * payload = (void *) (h + 1);
   u32 indent;
 
@@ -737,10 +801,17 @@ u8 * format_ethernet_packet (u8 * s, va_list * args)
 
   indent = format_get_indent (s);
 
+#ifndef __FreeBSD__
   s = format (s, "%U: %U -> %U",
 	      format_ethernet_proto, proto,
 	      format_network_address, AF_UNSPEC, h->h_source,
 	      format_network_address, AF_UNSPEC, h->h_dest);
+#else
+  s = format (s, "%U: %U -> %U",
+	      format_ethernet_proto, proto,
+	      format_network_address, AF_UNSPEC, h->ether_shost,
+	      format_network_address, AF_UNSPEC, h->ether_dhost);
+#endif
 
   switch (proto)
     {
@@ -891,7 +962,9 @@ u8 * format_signal (u8 * s, va_list * args)
       _ (SIGPROF);
       _ (SIGWINCH);
       _ (SIGIO);
+#ifdef SIGPWR
       _ (SIGPWR);
+#endif
 #ifdef SIGSYS
       _ (SIGSYS);
 #endif
@@ -912,6 +985,7 @@ u8 * format_ucontext_pc (u8 * s, va_list * args)
 
   uc = va_arg (*args, ucontext_t *);
 
+#ifndef __FreeBSD__
 #if defined (powerpc)
   regs = &uc->uc_mcontext.uc_regs->gregs[0];
 #elif defined (powerpc64)
@@ -929,6 +1003,7 @@ u8 * format_ucontext_pc (u8 * s, va_list * args)
 #else
   reg_no = 0;
   regs = 0;
+#endif
 #endif
 
   if (! regs)
