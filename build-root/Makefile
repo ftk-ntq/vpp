@@ -39,7 +39,8 @@
 ######################################################################
 
 # Scripts require non-POSIX parts of bash
-SHELL := /bin/bash
+SHELL := /usr/local/bin/bash
+MAKE := /usr/local/bin/gmake
 
 # Where this makefile lives
 MU_BUILD_ROOT_DIR = $(shell pwd)
@@ -800,7 +801,7 @@ pull-all:
 	$(call build_msg_fn,Git pull build tools) ;				\
 	$(call tool_make_target_fn,pull-all) ;					\
 	$(call build_msg_fn,Git pull packages for platform $(PLATFORM)) ;	\
-	make PLATFORM=$(PLATFORM) $(patsubst %,%-pull-all,$(ROOT_PACKAGES))
+	$(MAKE) PLATFORM=$(PLATFORM) $(patsubst %,%-pull-all,$(ROOT_PACKAGES))
 
 .PHONY: %-diff
 %-diff:

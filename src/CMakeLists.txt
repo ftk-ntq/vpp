@@ -44,7 +44,11 @@ if(CMAKE_CROSSCOMPILING)
     /usr/lib/${CMAKE_HOST_SYSTEM_PROCESSOR}-linux-gnu/lib/
   )
 endif()
-set(CMAKE_C_COMPILER_TARGET ${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+  set(CMAKE_C_COMPILER_TARGET ${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  set(CMAKE_C_COMPILER_TARGET ${CMAKE_SYSTEM_PROCESSOR}-freebsd)
+endif()
 
 ##############################################################################
 # build config
@@ -169,6 +173,12 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     vppinfra svm vlib vlibmemory vlibapi vnet vpp vat vat2 vcl plugins
     vpp-api tools/vppapigen tools/g2 tools/perftool cmake pkg
     tools/appimage
+  )
+elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  find_package(OpenSSL REQUIRED)
+  set(SUBDIRS
+    vppinfra svm vlib vlibmemory vlibapi vnet vpp
+    vpp-api cmake
   )
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   set(SUBDIRS vppinfra)
