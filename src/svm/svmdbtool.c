@@ -249,10 +249,17 @@ sigaction_handler (int signum, siginfo_t * i, void *notused)
 {
   u32 action, opaque;
 
+#ifndef __FreeBSD__
   action = (u32) (uword) i->si_ptr;
   action >>= 28;
   opaque = (u32) (uword) i->si_ptr;
   opaque &= ~(0xF0000000);
+#else
+  action = (u32) (uword) i->si_value.sigval_ptr;
+  action >>= 28;
+  opaque = (u32) (uword) i->si_value.sigval_ptr;
+  opaque &= ~(0xF0000000);
+#endif
 
   clib_warning ("signal %d, action %d, opaque %x", signum, action, opaque);
 }
