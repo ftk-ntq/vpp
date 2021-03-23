@@ -41,21 +41,27 @@ getcpu (unsigned *cpu, unsigned *node)
 static inline long
 set_mempolicy (int mode, const unsigned long *nodemask, unsigned long maxnode)
 {
-  return syscall (__NR_set_mempolicy, mode, nodemask, maxnode);
+  // return syscall (__NR_set_mempolicy, mode, nodemask, maxnode);
+  // TODO: FreeBSD method to perform this is unknown.
+  return 0;
 }
 
 static inline int
 get_mempolicy (int *mode, unsigned long *nodemask, unsigned long maxnode,
 	       void *addr, unsigned long flags)
 {
-  return syscall (__NR_get_mempolicy, mode, nodemask, maxnode, addr, flags);
+  // return syscall (__NR_get_mempolicy, mode, nodemask, maxnode, addr, flags);
+  // TODO: FreeBSD method to perform this is unknown.
+  return 0;
 }
 
 static inline long
 move_pages (int pid, unsigned long count, void **pages, const int *nodes,
 	    int *status, int flags)
 {
-  return syscall (__NR_move_pages, pid, count, pages, nodes, status, flags);
+  // return syscall (__NR_move_pages, pid, count, pages, nodes, status, flags);
+  // TODO: FreeBSD method to perform this is unknown.
+  return 0;
 }
 
 #ifndef HAVE_MEMFD_CREATE

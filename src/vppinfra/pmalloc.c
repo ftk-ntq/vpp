@@ -19,8 +19,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifndef __FreeBSD__
 #include <linux/mempolicy.h>
 #include <linux/memfd.h>
+#endif
 #include <sched.h>
 
 #include <vppinfra/format.h>
@@ -275,6 +277,7 @@ pmalloc_map_pages (clib_pmalloc_main_t * pm, clib_pmalloc_arena_t * a,
     }
 
   mask[0] = 1 << numa_node;
+#ifndef __FreeBSD__
   rv = set_mempolicy (MPOL_BIND, mask, sizeof (mask) * 8 + 1);
   if (rv == -1 && numa_node != 0)
     {
@@ -282,6 +285,7 @@ pmalloc_map_pages (clib_pmalloc_main_t * pm, clib_pmalloc_arena_t * a,
 					  "numa node %u", numa_node);
       return 0;
     }
+#endif
 
   mmap_flags = MAP_FIXED;
 
@@ -297,7 +301,11 @@ pmalloc_map_pages (clib_pmalloc_main_t * pm, clib_pmalloc_arena_t * a,
   else
     {
       if (a->log2_subpage_sz != clib_mem_get_log2_page_size ())
+#ifndef __FreeBSD__
 	mmap_flags |= MAP_HUGETLB;
+#else
+	mmap_flags |= MAP_ALIGNED_SUPER;
+#endif
 
       mmap_flags |= MAP_PRIVATE | MAP_ANONYMOUS;
       a->fd = -1;
