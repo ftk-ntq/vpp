@@ -35,6 +35,10 @@
 #include <sys/uio.h>
 #include <stdlib.h>
 
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX     SUNPATHLEN
+#endif
+
 punt_main_t punt_main;
 
 char *
