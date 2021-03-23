@@ -64,6 +64,9 @@ move_pages (int pid, unsigned long count, void **pages, const int *nodes,
   return 0;
 }
 
+#ifdef __FreeBSD__
+#define HAVE_MEMFD_CREATE
+#endif
 #ifndef HAVE_MEMFD_CREATE
 static inline int
 memfd_create (const char *name, unsigned int flags)
