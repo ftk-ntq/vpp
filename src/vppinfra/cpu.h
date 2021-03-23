@@ -164,6 +164,7 @@ _ (asimddp,    20) \
 _ (sha512,     21) \
 _ (sve,        22)
 
+#ifndef __FreeBSD__
 static inline u32
 clib_get_current_cpu_id ()
 {
@@ -179,6 +180,22 @@ clib_get_current_numa_node ()
   syscall (__NR_getcpu, &cpu, &node, 0);
   return node;
 }
+#else
+static inline u32
+clib_get_current_cpu_id ()
+{
+  unsigned cpu, tmp;
+  __asm__ volatile("cpuid" : "=d"(cpu), "=a"(tmp), "=b"(tmp), "=c"(tmp) : "a"(0xb) );
+  return cpu;
+}
+
+static inline u32
+clib_get_current_numa_node ()
+{
+  // TODO: Unsure about how to determine the numa node, assuming a single node 0.
+  return 0;
+}
+#endif
 
 #if defined(__x86_64__)
 #include "cpuid.h"

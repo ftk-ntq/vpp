@@ -20,11 +20,22 @@
 #include <sys/syscall.h>
 
 #ifndef HAVE_GETCPU
+#ifndef __FreeBSD__
 static inline int
 getcpu (unsigned *cpu, unsigned *node)
 {
   return syscall (__NR_getcpu, cpu, node, 0);
 }
+#else
+static inline int
+getcpu (unsigned *cpu, unsigned *node)
+{
+  unsigned tmp;
+  __asm__ volatile("cpuid" : "=d"(cpu), "=a"(tmp), "=b"(tmp), "=c"(tmp) : "a"(0xb) );
+  *node = 0;
+  return 0;
+}
+#endif
 #endif
 
 static inline long
