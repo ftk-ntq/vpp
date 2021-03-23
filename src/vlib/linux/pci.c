@@ -178,8 +178,8 @@ vlib_pci_get_numa_node (vlib_main_t * vm, vlib_pci_dev_handle_t h)
 u32
 vlib_pci_get_num_msix_interrupts (vlib_main_t * vm, vlib_pci_dev_handle_t h)
 {
-  linux_pci_device_t *d = linux_pci_get_device (h);
 #ifndef __FreeBSD__
+  linux_pci_device_t *d = linux_pci_get_device (h);
   if (d->type == LINUX_PCI_DEVICE_TYPE_VFIO)
     {
       struct vfio_irq_info ii = { 0 };
@@ -403,7 +403,9 @@ vlib_pci_bind_to_uio (vlib_main_t * vm, vlib_pci_addr_t * addr,
   clib_error_t *error = 0;
   u8 *s = 0, *driver_name = 0;
   DIR *dir = 0;
+#ifndef __FreeBSD__
   struct dirent *e;
+#endif
   vlib_pci_device_info_t *di;
   int fd, clear_driver_override = 0;
   u8 *dev_dir_name = format (0, "%s/%U", sysfs_pci_dev_path,
@@ -594,12 +596,12 @@ scan_uio_dir (void *arg, u8 * path_name, u8 * file_name)
   return 0;
 }
 
+#ifndef __FreeBSD__
 static clib_error_t *
 vfio_set_irqs (vlib_main_t * vm, linux_pci_device_t * p, u32 index, u32 start,
 	       u32 count, u32 flags, int *efds)
 {
   int data_len = efds ? count * sizeof (int) : 0;
-#ifndef __FreeBSD__
   u8 buf[sizeof (struct vfio_irq_set) + data_len];
   struct vfio_irq_info ii = { 0 };
   struct vfio_irq_set *irq_set = (struct vfio_irq_set *) buf;
@@ -648,10 +650,11 @@ vfio_set_irqs (vlib_main_t * vm, linux_pci_device_t * p, u32 index, u32 start,
 				   "flags = 0x%x]",
 				   format_vlib_pci_addr, &p->addr,
 				   index, start, count, flags);
-#endif
   return 0;
 }
+#endif
 
+#ifndef __FreeBSD__
 static clib_error_t *
 linux_pci_uio_read_ready (clib_file_t * uf)
 {
@@ -671,7 +674,9 @@ linux_pci_uio_read_ready (clib_file_t * uf)
 
   return /* no error */ 0;
 }
+#endif
 
+#ifndef __FreeBSD__
 static clib_error_t *
 linux_pci_vfio_unmask_intx (vlib_main_t * vm, linux_pci_device_t * d)
 {
@@ -682,7 +687,9 @@ linux_pci_vfio_unmask_intx (vlib_main_t * vm, linux_pci_device_t * d)
   return 0;
 #endif
 }
+#endif
 
+#ifndef __FreeBSD__
 static clib_error_t *
 linux_pci_uio_error_ready (clib_file_t * uf)
 {
@@ -690,6 +697,7 @@ linux_pci_uio_error_ready (clib_file_t * uf)
 
   return clib_error_return (0, "pci device %d: error", error_index);
 }
+#endif
 
 static clib_error_t *
 linux_pci_vfio_msix_read_ready (clib_file_t * uf)
@@ -710,6 +718,7 @@ linux_pci_vfio_msix_read_ready (clib_file_t * uf)
   return /* no error */ 0;
 }
 
+#ifndef __FreeBSD__
 static clib_error_t *
 linux_pci_vfio_intx_read_ready (clib_file_t * uf)
 {
@@ -729,6 +738,7 @@ linux_pci_vfio_intx_read_ready (clib_file_t * uf)
 
   return /* no error */ 0;
 }
+#endif
 
 static clib_error_t *
 linux_pci_vfio_error_ready (clib_file_t * uf)
@@ -798,11 +808,11 @@ clib_error_t *
 vlib_pci_register_intx_handler (vlib_main_t * vm, vlib_pci_dev_handle_t h,
 				pci_intx_handler_function_t * intx_handler)
 {
+#ifndef __FreeBSD__
   linux_pci_device_t *p = linux_pci_get_device (h);
   clib_file_t t = { 0 };
   linux_pci_irq_t *irq = &p->intx_irq;
   ASSERT (irq->fd == -1);
-#ifndef __FreeBSD__
   if (p->type == LINUX_PCI_DEVICE_TYPE_VFIO)
     {
       struct vfio_irq_info ii = { 0 };
@@ -907,11 +917,11 @@ clib_error_t *
 vlib_pci_enable_msix_irq (vlib_main_t * vm, vlib_pci_dev_handle_t h,
 			  u16 start, u16 count)
 {
+#ifndef __FreeBSD__
   linux_pci_device_t *p = linux_pci_get_device (h);
   int fds[count];
   int i;
 
-#ifndef __FreeBSD__
   if (p->type != LINUX_PCI_DEVICE_TYPE_VFIO)
     return clib_error_return (0, "vfio driver is needed for MSI-X interrupt "
 			      "support");
@@ -944,10 +954,10 @@ clib_error_t *
 vlib_pci_disable_msix_irq (vlib_main_t * vm, vlib_pci_dev_handle_t h,
 			   u16 start, u16 count)
 {
+#ifndef __FreeBSD__
   linux_pci_device_t *p = linux_pci_get_device (h);
   int i, fds[count];
 
-#ifndef __FreeBSD__
   if (p->type != LINUX_PCI_DEVICE_TYPE_VFIO)
     return clib_error_return (0, "vfio driver is needed for MSI-X interrupt "
 			      "support");
@@ -966,16 +976,16 @@ static clib_error_t *
 add_device_vfio (vlib_main_t * vm, linux_pci_device_t * p,
 		 vlib_pci_device_info_t * di, pci_device_registration_t * r)
 {
-  linux_pci_main_t *lpm = &linux_pci_main;
 #ifndef __FreeBSD__
+  linux_pci_main_t *lpm = &linux_pci_main;
   struct vfio_device_info device_info = { 0 };
   struct vfio_region_info reg = { 0 };
 #endif
   clib_error_t *err = 0;
+#ifndef __FreeBSD__
   u8 *s = 0;
   int is_noiommu;
 
-#ifndef __FreeBSD__
   p->type = LINUX_PCI_DEVICE_TYPE_VFIO;
 
   if ((err = linux_vfio_group_get_device_fd (&p->addr, &p->fd, &is_noiommu)))
@@ -1038,7 +1048,6 @@ add_device_vfio (vlib_main_t * vm, linux_pci_device_t * p,
 
   if (r && r->init_function)
     err = r->init_function (lpm->vlib_main, p->handle);
-#endif
 
 error:
   vec_free (s);
@@ -1050,6 +1059,7 @@ error:
 	close (p->config_fd);
       p->config_fd = p->fd = -1;
     }
+#endif
   return err;
 }
 
@@ -1340,7 +1350,9 @@ vlib_pci_device_close (vlib_main_t * vm, vlib_pci_dev_handle_t h)
   linux_pci_device_t *p = linux_pci_get_device (h);
   linux_pci_irq_t *irq;
   linux_pci_region_t *res;
+#ifndef __FreeBSD__
   clib_error_t *err = 0;
+#endif
 
   if (p->type == LINUX_PCI_DEVICE_TYPE_UIO)
     {

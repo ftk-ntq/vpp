@@ -39,9 +39,9 @@ linux_vfio_main_t vfio_main;
 clib_error_t *
 vfio_map_physmem_page (vlib_main_t * vm, void *addr)
 {
+#ifndef __FreeBSD__
   vlib_physmem_main_t *vpm = &vm->physmem_main;
   linux_vfio_main_t *lvm = &vfio_main;
-#ifndef __FreeBSD__
   struct vfio_iommu_type1_dma_map dm = { 0 };
   uword log2_page_size = vpm->pmalloc_main->def_log2_page_sz;
   uword physmem_start = pointer_to_uword (vpm->pmalloc_main->base);
@@ -94,10 +94,10 @@ get_vfio_iommu_group (int group)
 static clib_error_t *
 open_vfio_iommu_group (int group, int is_noiommu)
 {
+#ifndef __FreeBSD__
   linux_vfio_main_t *lvm = &vfio_main;
   linux_pci_vfio_iommu_group_t *g;
   clib_error_t *err = 0;
-#ifndef __FreeBSD__
   struct vfio_group_status group_status;
   u8 *s = 0;
   int fd;
@@ -190,7 +190,7 @@ linux_vfio_group_get_device_fd (vlib_pci_addr_t * addr, int *fdp,
   u8 *s = 0;
   int iommu_group;
   u8 *tmpstr;
-  int fd;
+  int fd = 0;
 
   *is_noiommu = 0;
   s =

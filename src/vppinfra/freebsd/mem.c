@@ -588,6 +588,7 @@ done:
 __clib_export int
 clib_mem_set_numa_affinity (u8 numa_node, int force)
 {
+#ifndef __FreeBSD__
   clib_mem_main_t *mm = &clib_mem_main;
   long unsigned int mask[16] = { 0 };
   int mask_len = sizeof (mask) * 8 + 1;
@@ -619,15 +620,16 @@ clib_mem_set_numa_affinity (u8 numa_node, int force)
 error:
   vec_reset_length (mm->error);
   mm->error = clib_error_return_unix (mm->error, (char *) __func__);
+#endif
   return CLIB_MEM_ERROR;
 }
 
 __clib_export int
 clib_mem_set_default_numa_affinity ()
 {
+#ifndef __FreeBSD__
   clib_mem_main_t *mm = &clib_mem_main;
 
-#ifndef __FreeBSD__
   if (set_mempolicy (MPOL_DEFAULT, 0, 0))
     {
       vec_reset_length (mm->error);
