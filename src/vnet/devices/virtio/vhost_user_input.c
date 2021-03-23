@@ -25,10 +25,19 @@
 #include <sys/types.h>
 #include <sys/uio.h>		/* for iovec */
 #include <netinet/in.h>
+#ifndef __FreeBSD__
 #include <sys/vfs.h>
+#else
+#include <sys/mount.h>
+#endif
 
+#ifndef __FreeBSD__
 #include <linux/if_arp.h>
 #include <linux/if_tun.h>
+#else
+#include <net/if_arp.h>
+#include <net/if_tun.h>
+#endif
 
 #include <vlib/vlib.h>
 #include <vlib/unix/unix.h>
