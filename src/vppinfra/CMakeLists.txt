@@ -203,6 +203,14 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
    )
 endif()
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  list(APPEND VPPINFRA_SRCS
+    elf_clib.c
+    freebsd/mem.c
+    linux/sysfs.c
+   )
+endif()
+
 option(VPP_USE_EXTERNAL_LIBEXECINFO "Use external libexecinfo (useful for non-glibc targets)." OFF)
 if(VPP_USE_EXTERNAL_LIBEXECINFO)
   set(EXECINFO_LIB execinfo)
