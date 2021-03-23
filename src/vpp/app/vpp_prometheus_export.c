@@ -30,6 +30,9 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#ifdef __FreeBSD__
+#include <netinet/in.h>
+#endif
 #include <vpp-api/client/stat_client.h>
 #include <vlib/vlib.h>
 #include <ctype.h>
