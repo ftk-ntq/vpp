@@ -141,7 +141,9 @@ main (int argc, char *argv[])
 {
   clib_socket_t _s = { 0 }, *s = &_s;
   clib_error_t *error = 0;
+#ifndef __FreeBSD__
   struct epoll_event event;
+#endif
   struct sigaction sa;
   struct termios tio;
   int efd = -1;
@@ -218,7 +220,7 @@ main (int argc, char *argv[])
 	  goto done;
 	}
     }
-
+#ifndef __FreeBSD__
   efd = epoll_create1 (0);
 
   /* register STDIN */
@@ -242,6 +244,7 @@ main (int argc, char *argv[])
       error = clib_error_return_unix (0, "epoll_ctl[%d]", s->fd);
       goto done;
     }
+#endif
 
   while (1)
     {
@@ -252,7 +255,7 @@ main (int argc, char *argv[])
 	  window_resized = 0;
 	  send_naws (s);
 	}
-
+#ifndef __FreeBSD__
       if ((n = epoll_wait (efd, &event, 1, -1)) < 0)
 	{
 	  /* maybe we received signal */
@@ -353,6 +356,7 @@ main (int argc, char *argv[])
 	  error = clib_error_return (0, "unknown fd");
 	  goto done;
 	}
+#endif
     }
 
   error = clib_socket_close (s);
