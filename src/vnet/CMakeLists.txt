@@ -1032,13 +1032,13 @@ list(APPEND VNET_API_FILES
 ##############################################################################
 
 list(APPEND VNET_SOURCES
-  devices/tap/cli.c
-  devices/tap/tap.c
-  devices/tap/tapv2_api.c
+#  devices/tap/cli.c
+#  devices/tap/tap.c
+#  devices/tap/tapv2_api.c
 )
 
 list(APPEND VNET_HEADERS
-  devices/tap/tap.h
+#  devices/tap/tap.h
 )
 
 list(APPEND VNET_API_FILES
