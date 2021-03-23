@@ -265,6 +265,7 @@ static clib_error_t *
 vl_sock_api_recv_fd_msg_internal (socket_client_main_t * scm, int fds[],
 				  int n_fds, u32 wait)
 {
+#ifndef __FreeBSD__
   char msgbuf[16];
   char ctl[CMSG_SPACE (sizeof (int) * n_fds)
 	   + CMSG_SPACE (sizeof (struct ucred))];
@@ -325,6 +326,7 @@ vl_sock_api_recv_fd_msg_internal (socket_client_main_t * scm, int fds[],
 	}
       cmsg = CMSG_NXTHDR (&mh, cmsg);
     }
+#endif
   return 0;
 }
 
