@@ -20,7 +20,11 @@
 #ifndef included_punt_h
 #define included_punt_h
 
+#ifndef __FreeBSD__
 #include <linux/un.h>
+#else
+#include <sys/un.h>
+#endif
 #include <stdbool.h>
 #include <vnet/ip/ip.h>
 
