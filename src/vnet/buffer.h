@@ -450,12 +450,12 @@ typedef struct
   } qos;
 
   u8 loop_counter;
-  u8 __unused[1];
+  u8 ___unused[1];
 
   /* Group Based Policy */
   struct
   {
-    u8 __unused;
+    u8 ___unused;
     u8 flags;
     u16 sclass;
   } gbp;
