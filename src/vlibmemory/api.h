@@ -18,6 +18,9 @@
 #ifndef included_vlibmemory_api_common_h
 #define included_vlibmemory_api_common_h
 
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#endif
 #include <svm/svm_common.h>
 #include <vlibapi/api.h>
 #include <vlibmemory/memory_api.h>
