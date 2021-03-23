@@ -102,8 +102,12 @@ static inline void *BV (alloc_aligned) (BVT (clib_bihash) * h, uword nbytes)
       void *base, *rv;
       uword alloc = alloc_arena_next (h) - alloc_arena_mapped (h);
       int mmap_flags = MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS;
+#ifndef __FreeBSD__
       int mmap_flags_huge = (mmap_flags | MAP_HUGETLB | MAP_LOCKED |
 			     BIHASH_LOG2_HUGEPAGE_SIZE << MAP_HUGE_SHIFT);
+#else
+      int mmap_flags_huge = (mmap_flags | MAP_ALIGNED_SUPER);
+#endif
 
       /* new allocation is 25% of existing one */
       if (alloc_arena_mapped (h) >> 2 > alloc)
