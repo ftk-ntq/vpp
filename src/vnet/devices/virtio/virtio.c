@@ -19,7 +19,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <net/if.h>
+#ifndef __FreeBSD__
 #include <linux/if_tun.h>
+#else
+#include <net/if_tun.h>
+#endif
 #include <sys/ioctl.h>
 #include <sys/eventfd.h>
 
