@@ -37,6 +37,8 @@ DOC_DEB_DEPENDS = doxygen graphviz python3-pyparsing python3-jinja2
 DOC_RPM_DEPENDS = doxygen graphviz python3-pyparsing python3-jinja2
 DOC_MAC_BIN_DEPENDS = doxygen dot git
 DOC_MAC_PY_DEPENDS = pyparsing jinja2
+DOC_FBSD_BIN_DEPENDS = doxygen dot git
+DOC_FBSD_PY_DEPENDS = pyparsing jinja2
 
 # Doxygen configuration and our utility scripts
 DOXY_DIR ?= $(WS_ROOT)/doxygen
@@ -155,8 +157,23 @@ else ifeq ($(OS_ID),darwin)
 			false; \
 		); \
 	done
+else ifeq ($(OS_ID),freebsd)
+	@set -e; \
+	for bin in $(DOC_FBSD_BIN_DEPENDS); do \
+		which -s $${bin} || (\
+			echo "Program '$${bin}' not found, please install it."; \
+			false; \
+		); \
+	done
+	@set -e; \
+	for py in $(DOC_FBSD_PY_DEPENDS); do \
+		python3 -c "import $${py}" >/dev/null 2>&1 || (\
+			echo "Python package '$${py}' not found, please install it."; \
+			false; \
+		); \
+	done
 else
-	$(error "Building documentation currently works only on Ubuntu, CentOS, MacOS and OpenSUSE systems.")
+	$(error "Building documentation currently works only on Ubuntu, CentOS, MacOS and OpenSUSE systems, but not $(OS_ID).")
 endif
 	@touch $@
 

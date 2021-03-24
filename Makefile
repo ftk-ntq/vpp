@@ -14,7 +14,7 @@
 export WS_ROOT=$(CURDIR)
 export BR=$(WS_ROOT)/build-root
 CCACHE_DIR?=$(BR)/.ccache
-SHELL:=/bin/bash
+SHELL:=/usr/bin/env bash
 GDB?=gdb
 PLATFORM?=vpp
 SAMPLE_PLUGIN?=no
@@ -668,7 +668,7 @@ checkfeaturelist: centos-pyyaml
 export DOXY_DIR ?= $(WS_ROOT)/doxygen
 
 define make-doxy
-	@OS_ID="$(OS_ID)" make -C $(DOXY_DIR) $@
+	@OS_ID="$(OS_ID)" gmake -C $(DOXY_DIR) $@
 endef
 
 .PHONY: bootstrap-doxygen
