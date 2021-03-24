@@ -14,6 +14,10 @@ build-freebsd/CMakeCache.txt: .version build-freebsd
 build: build-freebsd/CMakeCache.txt
 	cmake --build build-freebsd
 
+.PHONY: buildm
+buildm: build-freebsd/CMakeCache.txt
+	cmake --build build-freebsd -- -j 12
+
 clean:
 	rm -rf build-freebsd
 
