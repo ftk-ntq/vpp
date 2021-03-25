@@ -57,7 +57,11 @@
 #endif
 
 #ifndef MAP_FIXED_NOREPLACE
+#ifndef __FreeBSD__
 #define MAP_FIXED_NOREPLACE 0x100000
+#else
+#define MAP_FIXED_NOREPLACE MAP_FIXED
+#endif
 #endif
 
 static void

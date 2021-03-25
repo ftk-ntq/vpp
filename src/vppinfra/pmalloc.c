@@ -287,7 +287,11 @@ pmalloc_map_pages (clib_pmalloc_main_t * pm, clib_pmalloc_arena_t * a,
     }
 #endif
 
+#ifndef __FreeBSD__
   mmap_flags = MAP_FIXED;
+#else
+  mmap_flags = MAP_ALIGNED_SUPER;
+#endif
 
   if (a->flags & CLIB_PMALLOC_ARENA_F_SHARED_MEM)
     {
