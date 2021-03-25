@@ -178,6 +178,7 @@ sort_registrations_by_no_clone (void *a0, void *a1)
 	  - ((i32) ((*tr1)->no_data_structure_clone)));
 }
 
+#ifndef __FreeBSD__
 static uword *
 clib_sysfs_list_to_bitmap (char *filename)
 {
@@ -204,6 +205,7 @@ clib_sysfs_list_to_bitmap (char *filename)
     }
   return r;
 }
+#endif
 
 
 /* Called early in the init sequence */
@@ -220,10 +222,19 @@ vlib_thread_init (vlib_main_t * vm)
   uword *avail_cpu;
 
   /* get bitmaps of active cpu cores and sockets */
+#if defined(__FreeBSD__)
+  u32 cores;
+  tm->cpu_core_bitmap = malloc(sizeof(uword));
+  *tm->cpu_core_bitmap = 0;
+  cores = sysconf(_SC_NPROCESSORS_ONLN);
+  for (int i = 0; i < cores; i++)
+    *tm->cpu_core_bitmap |= 1 << i;
+#else
   tm->cpu_core_bitmap =
     clib_sysfs_list_to_bitmap ("/sys/devices/system/cpu/online");
   tm->cpu_socket_bitmap =
     clib_sysfs_list_to_bitmap ("/sys/devices/system/node/online");
+#endif /* __FreeBSD__ */
 
   avail_cpu = clib_bitmap_dup (tm->cpu_core_bitmap);
 
