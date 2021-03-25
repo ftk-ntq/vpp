@@ -306,7 +306,7 @@ clib_mem_vm_reserve (uword start, uword size, clib_mem_page_sz_t log2_page_sz)
 	return ~0;
 
       base = (void *) start - sys_page_sz;
-      base = mmap (base, size + sys_page_sz, PROT_READ | PROT_WRITE,
+      base = mmap (base, size + sys_page_sz, PROT_NONE,
 		   MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
       return (base == MAP_FAILED) ? ~0 : start;
     }
