@@ -105,7 +105,7 @@ typedef struct svm_map_region_args_
  * cover everything we plan to put here.
  */
 #define SVM_GLOBAL_REGION_SIZE    (64<<20)
-#define SVM_GLOBAL_REGION_NAME "/global_vm"
+#define SVM_GLOBAL_REGION_NAME "/tmp/global_vm"
 u64 svm_get_global_region_base_va ();
 
 /*
@@ -114,7 +114,7 @@ u64 svm_get_global_region_base_va ();
 #define SVM_OVERLAY_REGION_BASEVA \
                (SVM_GLOBAL_REGION_BASEVA + SVM_GLOBAL_REGION_SIZE)
 #define SVM_OVERLAY_REGION_SIZE   (1<<20)
-#define SVM_OVERLAY_REGION_BASENAME "/overlay_vm"
+#define SVM_OVERLAY_REGION_BASENAME "/tmp/overlay_vm"
 
 typedef struct
 {
