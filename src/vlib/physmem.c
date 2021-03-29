@@ -32,7 +32,7 @@
 #if defined(__x86_64__) && !defined(CLIB_SANITIZE_ADDR)
 /* we keep physmem in low 38 bits of VA address space as some
    IOMMU implamentation cannot map above that range */
-#define VLIB_PHYSMEM_DEFAULT_BASE_ADDDR		(1ULL << 36)
+#define VLIB_PHYSMEM_DEFAULT_BASE_ADDDR		(1ULL << 36)      // 68 719 476 736 or 0x10 0000 0000
 #else
 /* let kernel decide */
 #define VLIB_PHYSMEM_DEFAULT_BASE_ADDDR		0

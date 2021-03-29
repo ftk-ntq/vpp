@@ -552,7 +552,9 @@ svm_map_region (svm_map_region_args_t * a)
   int svm_fd;
   svm_region_t *rp;
   int deadman = 0;
+#ifndef __FreeBSD__
   u8 junk = 0;
+#endif
   void *oldheap;
   int rv;
   int pid_holding_region_lock;
@@ -583,6 +585,15 @@ svm_map_region (svm_map_region_args_t * a)
 
       vec_free (shm_name);
 
+#if defined(__FreeBSD__)
+      if (ftruncate(svm_fd, a->size) < 0)
+	{
+	  perror(NULL);
+	  clib_warning ("ftruncate region size");
+	  close (svm_fd);
+	  return (0);
+	}
+#else
       if (lseek (svm_fd, a->size, SEEK_SET) == (off_t) - 1)
 	{
 	  clib_warning ("seek region size");
@@ -595,6 +606,7 @@ svm_map_region (svm_map_region_args_t * a)
 	  close (svm_fd);
 	  return (0);
 	}
+#endif /* __FreeBSD__ */
 
       rp = mmap (uword_to_pointer (a->baseva, void *), a->size,
 		 PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, svm_fd, 0);

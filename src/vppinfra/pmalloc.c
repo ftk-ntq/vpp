@@ -287,7 +287,11 @@ pmalloc_map_pages (clib_pmalloc_main_t * pm, clib_pmalloc_arena_t * a,
     }
 #endif
 
+#ifndef __FreeBSD__
   mmap_flags = MAP_FIXED;
+#else
+  mmap_flags = MAP_FIXED;
+#endif
 
   if (a->flags & CLIB_PMALLOC_ARENA_F_SHARED_MEM)
     {
@@ -312,8 +316,8 @@ pmalloc_map_pages (clib_pmalloc_main_t * pm, clib_pmalloc_arena_t * a,
     }
 
   va = pm->base + (((uword) vec_len (pm->pages)) << pm->def_log2_page_sz);
-  if (mmap (va, size, PROT_READ | PROT_WRITE, mmap_flags, a->fd, 0) ==
-      MAP_FAILED)
+  va = mmap (va, size, PROT_READ | PROT_WRITE, mmap_flags, a->fd, 0);
+  if ( va == MAP_FAILED)
     {
       pm->error = clib_error_return_unix (0, "failed to mmap %u pages at %p "
 					  "fd %d numa %d flags 0x%x", n_pages,
