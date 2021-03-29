@@ -44,3 +44,6 @@ install-depends:
 # Run vpp with gdb
 gdb:
 	gdb --args build-freebsd/bin/vpp -c startup1.conf
+
+run:
+	/usr/local/bin/sudo build-freebsd/bin/vpp -c startup1.conf
