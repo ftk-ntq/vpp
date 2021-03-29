@@ -50,8 +50,10 @@ clib_error_t *clib_file_read_contents (char *file, u8 * result,
 /* Read and return contents of Unix file. */
 clib_error_t *clib_file_contents (char *file, u8 ** result);
 
+#ifndef __FreeBSD__
 /* As above but for /proc file system on Linux. */
 clib_error_t *unix_proc_file_contents (char *file, u8 ** result);
+#endif // #ifndef __FreeBSD__
 
 #endif /* included_clib_unix_h */
 
