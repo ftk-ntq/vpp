@@ -21,6 +21,10 @@ vat_main_t vat_main;
 
 #include <vlibapi/api_helper_macros.h>
 
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#endif
+
 void
 vat_suspend (vlib_main_t * vm, f64 interval)
 {
@@ -304,6 +308,25 @@ setup_signal_handlers (void)
     }
 }
 
+#ifdef __FreeBSD__
+static int getpathname_sysctl(pid_t pid, char *pathname, size_t maxlen) {
+  // Function based on procstat_getpathname_sysctl from libprocstat.c
+  // Code was coppied so as not to require linking to libprocstat
+	int error, name[4];
+	size_t len;
+
+	name[0] = CTL_KERN;
+	name[1] = KERN_PROC;
+	name[2] = KERN_PROC_PATHNAME;
+	name[3] = pid;
+	len = maxlen;
+	error = sysctl(name, nitems(name), pathname, &len, NULL, 0);
+	if (len == 0)
+		pathname[0] = '\0';
+	return (error);
+}
+#endif // #ifdef __FreeBSD__
+
 static void
 vat_find_plugin_path ()
 {
@@ -311,12 +334,19 @@ vat_find_plugin_path ()
   int rv;
   u8 *s;
 
+#ifndef __FreeBSD__
   /* find executable path */
   if ((rv = readlink ("/proc/self/exe", path, PATH_MAX - 1)) == -1)
     return;
 
   /* readlink doesn't provide null termination */
   path[rv] = 0;
+#else
+  /* find executable path */
+  /* -1 = current pid for this process */
+  if ((rv = getpathname_sysctl(-1, path, PATH_MAX - 1)) != 0)
+    return;
+#endif // #ifndef __FreeBSD__
 
   /* strip filename */
   if ((p = strrchr (path, '/')) == 0)
