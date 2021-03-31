@@ -42,6 +42,11 @@ uword unformat_sw_if_index (unformat_input_t * input, va_list * args);
 #include <acl/acl.api.h>
 #undef vl_endianfun
 
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#define __bswap_64 bswap64
+#endif
+
 typedef struct {
     /* API message ID base */
     u16 msg_id_base;
