@@ -423,7 +423,7 @@ unix_input_init (vlib_main_t * vm)
 /* *INDENT-OFF* */
 VLIB_INIT_FUNCTION (unix_input_init) =
 {
-  .runs_before = VLIB_INITS ("bsd_input_init"),
+  .runs_before = VLIB_INITS ("linux_epoll_input_init"),
 };
 /* *INDENT-ON* */
 
