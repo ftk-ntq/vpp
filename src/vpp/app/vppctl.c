@@ -15,7 +15,9 @@
 
 #include <sys/socket.h>
 #include <sys/un.h>
-#ifndef __FreeBSD__
+#ifdef __FreeBSD__
+#include <libepoll-shim/sys/epoll.h>
+#else
 #include <sys/epoll.h>
 #endif
 #include <sys/ioctl.h>
@@ -42,7 +44,6 @@
 volatile int window_resized = 0;
 struct termios orig_tio;
 
-#ifndef __FreeBSD__
 static void
 send_ttype (clib_socket_t * s, int is_interactive)
 {
@@ -56,9 +57,7 @@ send_ttype (clib_socket_t * s, int is_interactive)
 				IAC, SB, TELOPT_TTYPE, 0, term, IAC, SE);
   clib_socket_tx (s);
 }
-#endif
 
-#ifndef __FreeBSD__
 static void
 send_naws (clib_socket_t * s)
 {
@@ -76,7 +75,6 @@ send_naws (clib_socket_t * s)
 				ws.ws_row >> 8, ws.ws_row & 0xff, IAC, SE);
   clib_socket_tx (s);
 }
-#endif
 
 static void
 signal_handler_winch (int signum)
@@ -90,7 +88,6 @@ signal_handler_term (int signum)
   tcsetattr (STDIN_FILENO, TCSAFLUSH, &orig_tio);
 }
 
-#ifndef __FreeBSD__
 static u8 *
 process_input (u8 * str, clib_socket_t * s, int is_interactive,
 	       int *sent_ttype)
@@ -139,7 +136,6 @@ process_input (u8 * str, clib_socket_t * s, int is_interactive,
   vec_reset_length (s->rx_buffer);
   return str;
 }
-#endif
 
 
 int
@@ -147,22 +143,16 @@ main (int argc, char *argv[])
 {
   clib_socket_t _s = { 0 }, *s = &_s;
   clib_error_t *error = 0;
-#ifndef __FreeBSD__
   struct epoll_event event;
-#endif
   struct sigaction sa;
   struct termios tio;
   int efd = -1;
   u8 *str = 0;
   u8 *cmd = 0;
-#ifndef __FreeBSD__
   int do_quit = 0;
-#endif
   int is_interactive = 0;
-#ifndef __FreeBSD__
   int acked = 1;		/* counts messages from VPP; starts at 1 */
   int sent_ttype = 0;
-#endif
 
 
   clib_mem_init (0, 64ULL << 10);
@@ -230,7 +220,7 @@ main (int argc, char *argv[])
 	  goto done;
 	}
     }
-#ifndef __FreeBSD__
+
   efd = epoll_create1 (0);
 
   /* register STDIN */
@@ -254,11 +244,9 @@ main (int argc, char *argv[])
       error = clib_error_return_unix (0, "epoll_ctl[%d]", s->fd);
       goto done;
     }
-#endif
 
   while (1)
     {
-#ifndef __FreeBSD__
       int n;
 
       if (window_resized)
@@ -266,6 +254,7 @@ main (int argc, char *argv[])
 	  window_resized = 0;
 	  send_naws (s);
 	}
+
       if ((n = epoll_wait (efd, &event, 1, -1)) < 0)
 	{
 	  /* maybe we received signal */
@@ -366,8 +355,7 @@ main (int argc, char *argv[])
 	  error = clib_error_return (0, "unknown fd");
 	  goto done;
 	}
-#endif
-    }
+  }
 
   error = clib_socket_close (s);
 

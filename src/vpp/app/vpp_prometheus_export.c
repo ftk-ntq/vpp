@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 #ifdef __FreeBSD__
 #include <netinet/in.h>
+#include <libepoll-shim/sys/epoll.h>
 #endif
 #include <vpp-api/client/stat_client.h>
 #include <vlib/vlib.h>
