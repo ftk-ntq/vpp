@@ -328,20 +328,12 @@ clib_mem_vm_map_internal (void *base, clib_mem_page_sz_t log2_page_sz,
 	  log2_page_sz = mm->log2_page_sz;
 	  break;
 	case CLIB_MEM_PAGE_SZ_DEFAULT_HUGE:
-#ifndef __FreeBSD__
-	  mmap_flags |= MAP_HUGETLB;
-#else
 	  mmap_flags |= MAP_ALIGNED_SUPER;
-#endif
 	  log2_page_sz = mm->log2_default_hugepage_sz;
 	  is_huge = 1;
 	  break;
 	default:
-#ifndef __FreeBSD__
-	  mmap_flags |= MAP_HUGETLB;
-#else
 	  mmap_flags |= MAP_ALIGNED_SUPER;
-#endif
 	  mmap_flags |= log2_page_sz << MAP_HUGE_SHIFT;
 	  is_huge = 1;
 	}
