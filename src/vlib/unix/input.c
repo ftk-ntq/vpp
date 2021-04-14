@@ -44,12 +44,15 @@
 #include <vppinfra/tw_timer_1t_3w_1024sl_ov.h>
 
 /* FIXME autoconf */
-#ifndef __FreeBSD__
 #define HAVE_LINUX_EPOLL
 
 #ifdef HAVE_LINUX_EPOLL
 
+#ifdef __FreeBSD__
+#include <libepoll-shim/sys/epoll.h>
+#else
 #include <sys/epoll.h>
+#endif
 
 typedef struct
 {
@@ -410,25 +413,6 @@ linux_epoll_input_init (vlib_main_t * vm)
 VLIB_INIT_FUNCTION (linux_epoll_input_init);
 
 #endif /* HAVE_LINUX_EPOLL */
-#else /* __FreeBSD__ */
-
-static void
-bsd_file_update (clib_file_t * f, clib_file_update_type_t update_type)
-{
-}
-
-clib_error_t *
-bsd_input_init (vlib_main_t * vm)
-{
-  clib_file_main_t *fm = &file_main;
-
-  fm->file_update = bsd_file_update;
-
-  return NULL;
-}
-
-VLIB_INIT_FUNCTION (bsd_input_init);
-#endif /* __FreeBSD__ */
 
 static clib_error_t *
 unix_input_init (vlib_main_t * vm)
@@ -439,11 +423,7 @@ unix_input_init (vlib_main_t * vm)
 /* *INDENT-OFF* */
 VLIB_INIT_FUNCTION (unix_input_init) =
 {
-#ifndef __FreeBSD__
   .runs_before = VLIB_INITS ("linux_epoll_input_init"),
-#else
-  .runs_before = VLIB_INITS ("bsd_input_init"),
-#endif /* __FreeBSD__ */
 };
 /* *INDENT-ON* */
 

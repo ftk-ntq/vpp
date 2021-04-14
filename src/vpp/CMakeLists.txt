@@ -29,6 +29,21 @@ add_custom_target(vpp_version_h
 )
 
 ##############################################################################
+# FreeBSD - use epoll-shim
+##############################################################################
+set(FREEBSD_LIBS "")
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  find_path(EPOLL_SHIM_INCLUDE_DIR NAMES libepoll-shim/sys/epoll.h HINTS /usr/local/include)
+  find_library(EPOLL_SHIM_LIB NAMES epoll-shim HINTS /usr/local/lib)
+  
+  if(EPOLL_SHIM_INCLUDE_DIR AND EPOLL_SHIM_LIB)
+    message(STATUS "Found epoll-shim in ${EPOLL_SHIM_INCLUDE_DIR}")
+    include_directories(${EPOLL_SHIM_INCLUDE_DIR})
+    string(JOIN " " FREEBSD_LIBS "${EPOLL_SHIM_LIB}")
+  endif()
+endif()
+
+##############################################################################
 # vpp binary
 ##############################################################################
 option(VPP_API_TEST_BUILTIN "Use builtin VPP API test." ON)
@@ -81,7 +96,7 @@ endif()
 add_vpp_executable(vpp
   ENABLE_EXPORTS
   SOURCES ${VPP_SOURCES}
-  LINK_LIBRARIES svm vlib vppinfra vlibmemory vnet Threads::Threads ${CMAKE_DL_LIBS}
+  LINK_LIBRARIES svm vlib vppinfra vlibmemory vnet Threads::Threads ${CMAKE_DL_LIBS} ${FREEBSD_LIBS}
   DEPENDS vpp_version_h api_headers
 )
 
@@ -97,7 +112,7 @@ add_vpp_headers(vpp
 ##############################################################################
 add_vpp_executable(vppctl
   SOURCES app/vppctl.c
-  LINK_LIBRARIES vppinfra
+  LINK_LIBRARIES vppinfra ${FREEBSD_LIBS}
 )
 
 ##############################################################################
@@ -120,7 +135,7 @@ add_vpp_executable(vpp_get_stats
 
 add_vpp_executable(vpp_prometheus_export
   SOURCES app/vpp_prometheus_export.c
-  LINK_LIBRARIES vppapiclient vppinfra svm vlibmemoryclient
+  LINK_LIBRARIES vppapiclient vppinfra svm vlibmemoryclient ${FREEBSD_LIBS}
   DEPENDS api_headers
 )
 
