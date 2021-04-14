@@ -24,6 +24,7 @@
 #include <vpp-api/client/vppapiclient.h>
 
 #ifdef __FreeBSD__
+#include <sys/param.h>
 #include <sys/sysctl.h>
 #endif
 
