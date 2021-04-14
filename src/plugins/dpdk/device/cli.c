@@ -31,6 +31,10 @@
 
 #include <dpdk/device/dpdk_priv.h>
 
+#ifdef __FreeBSD__
+#include <unistd.h>
+#endif
+
 /**
  * @file
  * @brief CLI for DPDK Abstraction Layer and pcap Tx Trace.
@@ -97,10 +101,15 @@ show_dpdk_physmem (vlib_main_t * vm, unformat_input_t * input,
   int n, n_try;
   FILE *f;
 
+#ifndef __FreeBSD__
   err = clib_sysfs_read ("/proc/sys/fs/pipe-max-size", "%u", &pipe_max_size);
 
   if (err)
     return err;
+#else
+  // Get the safe buffer size allowing for atomic operation
+  pipe_max_size = fpathconf(fildes[1], _PC_PIPE_BUF);
+#endif // #ifndef __FreeBSD__
 
   if (pipe (fds) == -1)
     return clib_error_return_unix (0, "pipe");

@@ -449,6 +449,7 @@ unix_config (vlib_main_t * vm, unformat_input_t * input)
 	}
       else if (unformat (input, "full-coredump"))
 	{
+#ifndef __FreeBSD__
 	  int fd;
 
 	  fd = open ("/proc/self/coredump_filter", O_WRONLY);
@@ -460,6 +461,7 @@ unix_config (vlib_main_t * vm, unformat_input_t * input)
 	    }
 	  else
 	    clib_unix_warning ("couldn't open /proc/self/coredump_filter");
+#endif // #ifndef __FreeBSD__
 	}
       else if (unformat (input, "startup-config %s",
 			 &um->startup_config_filename))

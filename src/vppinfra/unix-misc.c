@@ -131,6 +131,7 @@ clib_file_contents (char *file, u8 ** result)
   return error;
 }
 
+#ifndef __FreeBSD__
 clib_error_t *
 unix_proc_file_contents (char *file, u8 ** result)
 {
@@ -168,6 +169,7 @@ unix_proc_file_contents (char *file, u8 ** result)
   close (fd);
   return 0;
 }
+#endif // #ifndef __FreeBSD__
 
 void os_panic (void) __attribute__ ((weak));
 

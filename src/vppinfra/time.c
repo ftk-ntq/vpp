@@ -47,6 +47,10 @@
 #include <sys/time.h>
 #include <fcntl.h>
 
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#endif
+
 /* Not very accurate way of determining cpu clock frequency
    for unix.  Better to use /proc/cpuinfo on linux. */
 static f64
@@ -67,6 +71,7 @@ estimate_clock_frequency (f64 sample_time)
   return freq;
 }
 
+#ifndef __FreeBSD__
 /* Fetch cpu frequency via parseing /proc/cpuinfo.
    Only works for Linux. */
 static f64
@@ -134,10 +139,12 @@ clock_frequency_from_sys_filesystem (void)
 done:
   return cpu_freq;
 }
+#endif // #ifndef __FreeBSD__
 
 __clib_export f64
 os_cpu_clock_frequency (void)
 {
+#ifndef __FreeBSD__
 #if defined (__aarch64__)
   /* The system counter increments at a fixed frequency. It is distributed
    * to each core which has registers for reading the current counter value
@@ -198,6 +205,35 @@ os_cpu_clock_frequency (void)
   /* If /proc/cpuinfo fails (e.g. not running on Linux) fall back to
      gettimeofday based estimated clock frequency. */
   return estimate_clock_frequency (1e-3);
+#else // #ifndef __FreeBSD__
+  size_t sz;
+  int tmp;
+  uint64_t tsc_hz;
+
+  sz = sizeof(tmp);
+  tmp = 0;
+
+  if (sysctlbyname("kern.timecounter.smp_tsc", &tmp, &sz, NULL, 0))
+    clib_warning ("Unable to read kern.timecounter.smp_tsc %s\n", strerror(errno));
+  else if (tmp != 1)
+    clib_warning ("TSC is not safe to use in SMP mode\n");
+
+  tmp = 0;
+
+  if (sysctlbyname("kern.timecounter.invariant_tsc", &tmp, &sz, NULL, 0))
+    clib_warning ("Unable to read kern.timecounter.invariant_tsc %s\n", strerror(errno));
+  else if (tmp != 1)
+    clib_warning ("TSC is not invariant\n");
+
+  sz = sizeof(tsc_hz);
+  if (sysctlbyname("machdep.tsc_freq", &tsc_hz, &sz, NULL, 0)) {
+    clib_warning ("Unable to read machdep.tsc_freq %s\n", strerror(errno));
+    // We failed to read the frequency and therefore it is estimated
+    return estimate_clock_frequency (1e-3);
+  }
+
+  return tsc_hz;
+#endif // #ifndef __FreeBSD__
 }
 
 #endif /* CLIB_UNIX */
