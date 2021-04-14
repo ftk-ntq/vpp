@@ -538,7 +538,7 @@ done:
 __clib_export int
 clib_mem_set_numa_affinity (u8 numa_node, int force)
 {
-#ifndef __FreeBSD__
+#if 0 // TODO Add multiple numa domains support
   clib_mem_main_t *mm = &clib_mem_main;
   long unsigned int mask[16] = { 0 };
   int mask_len = sizeof (mask) * 8 + 1;
@@ -559,10 +559,8 @@ clib_mem_set_numa_affinity (u8 numa_node, int force)
 
   mask[0] = 1 << numa_node;
 
-#ifndef __FreeBSD__
   if (set_mempolicy (force ? MPOL_BIND : MPOL_PREFERRED, mask, mask_len))
     goto error;
-#endif
 
   vec_reset_length (mm->error);
   return 0;
@@ -577,7 +575,7 @@ error:
 __clib_export int
 clib_mem_set_default_numa_affinity ()
 {
-#ifndef __FreeBSD__
+#if 0 // TODO Add multiple numa domains support
   clib_mem_main_t *mm = &clib_mem_main;
 
   if (set_mempolicy (MPOL_DEFAULT, 0, 0))
