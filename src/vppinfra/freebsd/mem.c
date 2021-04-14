@@ -80,63 +80,9 @@ map_unlock ()
 __clib_export uword
 clib_mem_get_default_hugepage_size (void)
 {
-#if defined(__FreeBSD__)
   static u32 size = 0;
-  size = 2048;
-#else
-  unformat_input_t input;
-  static u32 size = 0;
-  int fd;
-
-  if (size)
-    goto done;
-
-  /*
-   * If the kernel doesn't support hugepages, /proc/meminfo won't
-   * say anything about it. Use the regular page size as a default.
-   */
-  size = clib_mem_get_page_size () / 1024;
-
-  if ((fd = open ("/proc/meminfo", 0)) == -1)
-    return 0;
-
-  unformat_init_clib_file (&input, fd);
-
-  while (unformat_check_input (&input) != UNFORMAT_END_OF_INPUT)
-    {
-      if (unformat (&input, "Hugepagesize:%_%u kB", &size))
-	;
-      else
-	unformat_skip_line (&input);
-    }
-  unformat_free (&input);
-  close (fd);
-done:
-#endif
+  size = 2048; // TODO Hard coded to 2MB, add dynamic lookup
   return 1024ULL * size;
-}
-
-static clib_mem_page_sz_t
-legacy_get_log2_default_hugepage_size (void)
-{
-  clib_mem_page_sz_t log2_page_size = CLIB_MEM_PAGE_SZ_UNKNOWN;
-  FILE *fp;
-  char tmp[33] = { };
-
-  if ((fp = fopen ("/proc/meminfo", "r")) == NULL)
-    return CLIB_MEM_PAGE_SZ_UNKNOWN;
-
-  while (fscanf (fp, "%32s", tmp) > 0)
-    if (strncmp ("Hugepagesize:", tmp, 13) == 0)
-      {
-	u32 size;
-	if (fscanf (fp, "%u", &size) > 0)
-	  log2_page_size = 10 + min_log2 (size);
-	break;
-      }
-
-  fclose (fp);
-  return log2_page_size;
 }
 
 void
@@ -155,18 +101,12 @@ clib_mem_main_init ()
   mm->log2_page_sz = min_log2 (page_size);
 
   /* default system hugeppage size */
-#ifndef __FreeBSD__
-  if ((fd = memfd_create ("test", MFD_HUGETLB)) != -1)
-#else
   /* For FreeBSD we have to specify the size of the memfd to create */
   if ((fd = memfd_create ("test", MFD_HUGETLB|MFD_HUGE_2MB)) != -1)
-#endif
     {
       mm->log2_default_hugepage_sz = clib_mem_get_fd_log2_page_size (fd);
       close (fd);
     }
-  else				/* likely kernel older than 4.14 */
-    mm->log2_default_hugepage_sz = legacy_get_log2_default_hugepage_size ();
 
   /* numa nodes */
   va = mmap (0, page_size, PROT_READ | PROT_WRITE, MAP_PRIVATE |
@@ -253,15 +193,14 @@ clib_mem_vm_create_fd (clib_mem_page_sz_t log2_page_size, char *fmt, ...)
   s = va_format (0, fmt, &va);
   va_end (va);
 
-  /* memfd_create maximum string size is 249 chars without trailing zero */
-  if (vec_len (s) > 249)
-    _vec_len (s) = 249;
+  /* Check memfd_create maximum string size */
+  if (vec_len (s) > NAME_MAX)
+    _vec_len (s) = NAME_MAX;
   vec_add1 (s, 0);
 
-  /* memfd_create introduced in kernel 3.17, we don't support older kernels */
+  /* The memfd_create()	function appeared in FreeBSD 13.0. */
   fd = memfd_create ((char *) s, memfd_flags);
 
-  /* kernel versions < 4.14 does not support memfd_create for huge pages */
   if (fd == -1)
     {
       vec_reset_length (mm->error);
@@ -392,20 +331,12 @@ clib_mem_vm_map_internal (void *base, clib_mem_page_sz_t log2_page_sz,
 	  log2_page_sz = mm->log2_page_sz;
 	  break;
 	case CLIB_MEM_PAGE_SZ_DEFAULT_HUGE:
-#ifndef __FreeBSD__
-	  mmap_flags |= MAP_HUGETLB;
-#else
 	  mmap_flags |= MAP_ALIGNED_SUPER;
-#endif
 	  log2_page_sz = mm->log2_default_hugepage_sz;
 	  is_huge = 1;
 	  break;
 	default:
-#ifndef __FreeBSD__
-	  mmap_flags |= MAP_HUGETLB;
-#else
 	  mmap_flags |= MAP_ALIGNED_SUPER;
-#endif
 	  mmap_flags |= log2_page_sz << MAP_HUGE_SHIFT;
 	  is_huge = 1;
 	}
@@ -561,6 +492,10 @@ __clib_export u64 *
 clib_mem_vm_get_paddr (void *mem, clib_mem_page_sz_t log2_page_size,
 		       int n_pages)
 {
+// TODO FreeBSD does not have native acces to pagemap
+// Hard code return of 0 to indicate pagemap is not available
+// Investigate the option to replace with calls to procstat
+#if 0 
   int pagesize = sysconf (_SC_PAGESIZE);
   int fd;
   int i;
@@ -597,12 +532,14 @@ done:
       return 0;
     }
   return r;
+#endif
+  return 0;
 }
 
 __clib_export int
 clib_mem_set_numa_affinity (u8 numa_node, int force)
 {
-#ifndef __FreeBSD__
+#if 0 // TODO Add multiple numa domains support
   clib_mem_main_t *mm = &clib_mem_main;
   long unsigned int mask[16] = { 0 };
   int mask_len = sizeof (mask) * 8 + 1;
@@ -623,10 +560,8 @@ clib_mem_set_numa_affinity (u8 numa_node, int force)
 
   mask[0] = 1 << numa_node;
 
-#ifndef __FreeBSD__
   if (set_mempolicy (force ? MPOL_BIND : MPOL_PREFERRED, mask, mask_len))
     goto error;
-#endif
 
   vec_reset_length (mm->error);
   return 0;
@@ -641,7 +576,7 @@ error:
 __clib_export int
 clib_mem_set_default_numa_affinity ()
 {
-#ifndef __FreeBSD__
+#if 0 // TODO Add multiple numa domains support
   clib_mem_main_t *mm = &clib_mem_main;
 
   if (set_mempolicy (MPOL_DEFAULT, 0, 0))
