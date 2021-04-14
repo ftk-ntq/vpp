@@ -189,9 +189,9 @@ clib_mem_vm_create_fd (clib_mem_page_sz_t log2_page_size, char *fmt, ...)
   s = va_format (0, fmt, &va);
   va_end (va);
 
-  /* memfd_create maximum string size is 249 chars without trailing zero */
-  if (vec_len (s) > 249)
-    _vec_len (s) = 249;
+  /* Check memfd_create maximum string size */
+  if (vec_len (s) > NAME_MAX)
+    _vec_len (s) = NAME_MAX;
   vec_add1 (s, 0);
 
   /* memfd_create introduced in kernel 3.17, we don't support older kernels */
