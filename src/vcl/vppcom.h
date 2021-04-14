@@ -20,7 +20,11 @@
 #include <errno.h>
 #include <sys/fcntl.h>
 #include <sys/poll.h>
+#ifndef __FreeBSD__
 #include <sys/epoll.h>
+#else
+#include <sys/types.h>
+#endif
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

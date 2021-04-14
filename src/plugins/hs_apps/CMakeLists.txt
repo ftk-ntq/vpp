@@ -44,18 +44,18 @@ endif(VPP_BUILD_HS_SAPI_APPS)
 ##############################################################################
 # vcl tests
 ##############################################################################
-option(VPP_BUILD_VCL_TESTS "Build vcl tests." ON)
-if(VPP_BUILD_VCL_TESTS)
-  foreach(test
-    vcl_test_server
-    vcl_test_client
-    sock_test_server
-    sock_test_client
-  )
-    add_vpp_executable(${test}
-      SOURCES "vcl/${test}.c"
-      LINK_LIBRARIES vppcom pthread
-      NO_INSTALL
-    )
-  endforeach()
-endif(VPP_BUILD_VCL_TESTS)
+#option(VPP_BUILD_VCL_TESTS "Build vcl tests." ON)
+#if(VPP_BUILD_VCL_TESTS)
+#  foreach(test
+#    vcl_test_server
+#    vcl_test_client
+#    sock_test_server
+#    sock_test_client
+#  )
+#    add_vpp_executable(${test}
+#      SOURCES "vcl/${test}.c"
+#      LINK_LIBRARIES vppcom pthread
+#      NO_INSTALL
+#    )
+#  endforeach()
+#endif(VPP_BUILD_VCL_TESTS)

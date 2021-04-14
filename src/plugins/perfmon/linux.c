@@ -18,12 +18,15 @@
 #include <vlibapi/api.h>
 #include <vlibmemory/api.h>
 #include <vpp/app/version.h>
+#ifndef __FreeBSD__
 #include <linux/limits.h>
+#endif
 #include <sys/ioctl.h>
 
 #include <perfmon/perfmon.h>
-
+#ifndef __FreeBSD__
 #include <linux/perf_event.h>
+#endif
 
 #define foreach_perf_sw_counter                                               \
   _ (CONTEXT_SWITCHES, "context-switches")                                    \

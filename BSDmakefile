@@ -28,6 +28,7 @@ clean:
 	rm -rf build-freebsd
 
 # Enable a debug build for FreeBSD
+.PHONY: debug
 debug:
 	cmake -DCMAKE_BUILD_TYPE=Debug -B build-freebsd src
 
