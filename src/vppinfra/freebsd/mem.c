@@ -497,6 +497,10 @@ __clib_export u64 *
 clib_mem_vm_get_paddr (void *mem, clib_mem_page_sz_t log2_page_size,
 		       int n_pages)
 {
+// TODO FreeBSD does not have native acces to pagemap
+// Hard code return of 0 to indicate pagemap is not available
+// Investigate the option to replace with calls to procstat
+#if 0 
   int pagesize = sysconf (_SC_PAGESIZE);
   int fd;
   int i;
@@ -533,6 +537,8 @@ done:
       return 0;
     }
   return r;
+#endif
+  return 0;
 }
 
 __clib_export int
