@@ -77,7 +77,7 @@ __clib_export uword
 clib_mem_get_default_hugepage_size (void)
 {
   static u32 size = 0;
-  size = 2048; // Hard coded to 2MB for now
+  size = 2048; // TODO Hard coded to 2MB, add dynamic lookup
   return 1024ULL * size;
 }
 
@@ -194,10 +194,9 @@ clib_mem_vm_create_fd (clib_mem_page_sz_t log2_page_size, char *fmt, ...)
     _vec_len (s) = NAME_MAX;
   vec_add1 (s, 0);
 
-  /* memfd_create introduced in kernel 3.17, we don't support older kernels */
+  /* The memfd_create()	function appeared in FreeBSD 13.0. */
   fd = memfd_create ((char *) s, memfd_flags);
 
-  /* kernel versions < 4.14 does not support memfd_create for huge pages */
   if (fd == -1)
     {
       vec_reset_length (mm->error);
