@@ -11,6 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  message(WARNING "unittest plugin not functional on FreeBSD - unittest plugin disabled")
+  return()
+endif()
+
 set(chacha20_poly1305)
 if (OPENSSL_VERSION VERSION_GREATER_EQUAL 1.1.0)
     set(chacha20_poly1305 crypto/chacha20_poly1305.c)

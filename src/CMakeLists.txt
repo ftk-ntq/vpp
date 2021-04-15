@@ -177,8 +177,9 @@ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
   find_package(OpenSSL REQUIRED)
   set(SUBDIRS
-    vppinfra svm vlib vlibmemory vlibapi vnet vpp
-    vpp-api cmake
+    vppinfra svm vlib vlibmemory vlibapi vnet vpp vat vat2 plugins
+    vpp-api tools/vppapigen tools/g2 tools/perftool cmake pkg
+    tools/appimage
   )
 elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   set(SUBDIRS vppinfra)

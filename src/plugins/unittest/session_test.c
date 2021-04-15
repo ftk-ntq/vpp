@@ -19,7 +19,9 @@
 #include <vnet/session/session.h>
 #include <vnet/session/session_rules_table.h>
 #include <vnet/tcp/tcp.h>
+#ifndef __FreeBSD__
 #include <sys/epoll.h>
+#endif
 
 #define SESSION_TEST_I(_cond, _comment, _args...)		\
 ({								\
@@ -1736,6 +1738,7 @@ session_test_proxy (vlib_main_t * vm, unformat_input_t * input)
 static inline void
 wait_for_event (svm_msg_q_t * mq, int fd, int epfd, u8 use_eventfd)
 {
+#ifndef __FreeBSD__
   if (!use_eventfd)
     {
       svm_msg_q_wait (mq, SVM_MQ_WAIT_EMPTY);
@@ -1765,6 +1768,7 @@ wait_for_event (svm_msg_q_t * mq, int fd, int epfd, u8 use_eventfd)
 	    break;
 	}
     }
+#endif
 }
 
 static int
@@ -1776,7 +1780,9 @@ session_test_mq_speed (vlib_main_t * vm, unformat_input_t * input)
   int epfd = -1, rv, prod_fd = -1;
   svm_fifo_t *rx_fifo, *tx_fifo;
   vl_api_registration_t *reg;
+#ifndef __FreeBSD__
   struct epoll_event ep_evt;
+#endif
   u32 app_index, api_index;
   app_worker_t *app_wrk;
   segment_manager_t *sm;
@@ -1855,12 +1861,14 @@ session_test_mq_speed (vlib_main_t * vm, unformat_input_t * input)
     {
       if (use_eventfd)
 	{
+#ifndef __FreeBSD__
 	  epfd = epoll_create1 (0);
 	  SESSION_TEST (epfd != -1, "epfd created");
 	  ep_evt.events = EPOLLIN;
 	  ep_evt.data.u64 = prod_fd;
 	  rv = epoll_ctl (epfd, EPOLL_CTL_ADD, prod_fd, &ep_evt);
 	  SESSION_TEST (rv == 0, "epoll returned %d", rv);
+#endif
 	}
 
       for (i = 0; i < n_test_msgs; i++)

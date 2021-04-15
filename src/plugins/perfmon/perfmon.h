@@ -16,7 +16,9 @@
 #ifndef __perfmon_perfmon_h
 #define __perfmon_perfmon_h
 
+#ifndef __FreeBSD__
 #include <linux/perf_event.h>
+#endif
 #include <vppinfra/clib.h>
 #include <vppinfra/format.h>
 #include <vppinfra/error.h>

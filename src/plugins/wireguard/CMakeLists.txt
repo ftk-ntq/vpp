@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  message(WARNING "unittest plugin not functional on FreeBSD - unittest plugin disabled")
+  return()
+endif()
+
 if (OPENSSL_VERSION VERSION_LESS 1.1.0)
   return()
 endif()

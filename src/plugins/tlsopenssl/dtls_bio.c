@@ -65,7 +65,9 @@ bio_dtls_read (BIO *b, char *out, int outl)
   if (!s)
     {
       clib_warning ("no session");
+#ifndef __FreeBSD__
       errno = EBADFD;
+#endif
       return -1;
     }
 
@@ -102,7 +104,9 @@ bio_dtls_write (BIO *b, const char *in, int inl)
   if (!s)
     {
       clib_warning ("no session");
+#ifndef __FreeBSD__
       errno = EBADFD;
+#endif
       return -1;
     }
 

@@ -16,7 +16,9 @@
  */
 
 #include <sys/socket.h>
+#ifndef __FreeBSD__
 #include <linux/if.h>
+#endif
 
 #include <vnet/vnet.h>
 #include <vnet/plugin/plugin.h>
