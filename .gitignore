@@ -1,6 +1,7 @@
 /build-freebsd
 .version
 src/vppinfra/config.h
+src/vlib/config.h
 
 *~
 *.sw[op]
