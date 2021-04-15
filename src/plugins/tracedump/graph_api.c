@@ -29,9 +29,9 @@
 
 graph_main_t graph_main;
 
-
+#ifndef MIN
 #define MIN(x,y)	(((x) < (y)) ? (x) : (y))
-
+#endif
 
 /*
  * If ever the graph or set of nodes changes, this cache of

@@ -11,6 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  message(WARNING "dhcp plugin not functional on FreeBSD - dhcp plugin disabled")
+  return()
+endif()
+
 add_vpp_plugin(dhcp
   SOURCES
   client.c
