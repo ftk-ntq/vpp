@@ -180,9 +180,9 @@ netmap_create_if (vlib_main_t * vm, u8 * if_name, u8 * hw_addr_set,
 
   nif->nifp = NETMAP_IF (reg->mem, req->nr_offset);
   nif->first_rx_ring = 0;
-  nif->last_rx_ring = 0;
+  nif->last_rx_ring = req->nr_rx_rings; /* Set to the number of rx-rings reported */
   nif->first_tx_ring = 0;
-  nif->last_tx_ring = 0;
+  nif->last_tx_ring = req->nr_tx_rings; /* Set to the number of tx-rings reported */
   nif->host_if_name = if_name;
   nif->per_interface_next_index = ~0;
 
