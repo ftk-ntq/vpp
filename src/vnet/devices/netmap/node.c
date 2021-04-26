@@ -203,14 +203,17 @@ netmap_device_input_fn (vlib_main_t * vm, vlib_node_runtime_t * node,
 		{
 		  if (PREDICT_TRUE (first_b0 != 0))
 		    {
-		      netmap_input_trace_t *tr;
-		      vlib_trace_buffer (vm, node, next0, first_b0,
-					 /* follow_chain */ 0);
-		      vlib_set_trace_count (vm, node, --n_trace);
-		      tr = vlib_add_trace (vm, node, first_b0, sizeof (*tr));
-		      tr->next_index = next0;
-		      tr->hw_if_index = nif->hw_if_index;
-		      memcpy (&tr->slot, slot, sizeof (struct netmap_slot));
+			  if (PREDICT_TRUE
+	      		(vlib_trace_buffer (vm, node, next0, first_b0,
+					 /* follow_chain */ 0)))
+	    	  {
+				netmap_input_trace_t *tr;
+				vlib_set_trace_count (vm, node, --n_trace);
+				tr = vlib_add_trace (vm, node, first_b0, sizeof (*tr));
+				tr->next_index = next0;
+				tr->hw_if_index = nif->hw_if_index;
+				memcpy (&tr->slot, slot, sizeof (struct netmap_slot));
+			  }
 		    }
 		}
 
