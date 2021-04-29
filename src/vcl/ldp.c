@@ -702,15 +702,33 @@ int
 ldp_pselect (int nfds, fd_set * __restrict readfds,
 	     fd_set * __restrict writefds,
 	     fd_set * __restrict exceptfds,
-	     const struct timespec *__restrict timeout,
+	     const struct timespec *__restrict timeout_ts,
+	     struct timeval *__restrict timeout_tv,
 	     const __sigset_t * __restrict sigmask)
 {
   u32 minbits = clib_max (nfds, BITS (uword)), n_bytes;
   ldp_worker_ctx_t *ldpw = ldp_worker_get_current ();
   struct timespec libc_tspec = { 0 };
+  struct timeval libc_tval = { 0 };
   f64 time_out, vcl_timeout = 0;
   uword si_bits, libc_bits;
   int rv, bits_set = 0;
+
+  struct timespec timeout_st;
+  struct timespec *timeout = &timeout_st;
+  if ((timeout_tv) && (timeout_ts == NULL))
+    {
+      timeout_st.tv_sec = timeout_tv->tv_sec;
+      timeout_st.tv_nsec = timeout_tv->tv_usec * 1000;
+    }
+  else if (timeout_ts)
+    {
+      timeout_st = *timeout_ts;
+    }
+  else
+    {
+      timeout = NULL;
+    }
 
   if (nfds < 0)
     {
@@ -745,8 +763,12 @@ ldp_pselect (int nfds, fd_set * __restrict readfds,
 
   if (nfds <= ldp->vlsh_bit_val)
     {
+#ifdef __USE_XOPEN2K
       rv = libc_pselect (nfds, readfds, writefds, exceptfds,
 			 timeout, sigmask);
+#else
+      rv = libc_select (nfds, readfds, writefds, exceptfds, timeout_tv);
+#endif
       goto done;
     }
 
@@ -774,7 +796,10 @@ ldp_pselect (int nfds, fd_set * __restrict readfds,
     }
 
   if (!si_bits)
-    libc_tspec = timeout ? *timeout : libc_tspec;
+    {
+      libc_tspec = timeout ? *timeout : libc_tspec;
+      libc_tval = timeout_tv ? *timeout_tv : libc_tval;
+    }
 
   do
     {
@@ -839,11 +864,19 @@ ldp_pselect (int nfds, fd_set * __restrict readfds,
 			      vec_len (ldpw->libc_ex_bitmap) *
 			      sizeof (clib_bitmap_t));
 
+#ifdef __USE_XOPEN2K
 	  rv = libc_pselect (libc_bits,
 			     readfds ? (fd_set *) ldpw->rd_bitmap : NULL,
 			     writefds ? (fd_set *) ldpw->wr_bitmap : NULL,
 			     exceptfds ? (fd_set *) ldpw->ex_bitmap : NULL,
 			     &libc_tspec, sigmask);
+#else
+	  rv = libc_select (libc_bits,
+			     readfds ? (fd_set *) ldpw->rd_bitmap : NULL,
+			     writefds ? (fd_set *) ldpw->wr_bitmap : NULL,
+			     exceptfds ? (fd_set *) ldpw->ex_bitmap : NULL,
+			     &libc_tval);
+#endif
 	  if (rv > 0)
 	    {
 	      ldp_select_libc_map_merge (ldpw->rd_bitmap, readfds);
@@ -882,15 +915,7 @@ select (int nfds, fd_set * __restrict readfds,
 	fd_set * __restrict writefds,
 	fd_set * __restrict exceptfds, struct timeval *__restrict timeout)
 {
-  struct timespec tspec;
-
-  if (timeout)
-    {
-      tspec.tv_sec = timeout->tv_sec;
-      tspec.tv_nsec = timeout->tv_usec * 1000;
-    }
-  return ldp_pselect (nfds, readfds, writefds, exceptfds,
-		      timeout ? &tspec : NULL, NULL);
+  return ldp_pselect (nfds, readfds, writefds, exceptfds, NULL, timeout, NULL);
 }
 
 #ifdef __USE_XOPEN2K
@@ -901,7 +926,7 @@ pselect (int nfds, fd_set * __restrict readfds,
 	 const struct timespec *__restrict timeout,
 	 const __sigset_t * __restrict sigmask)
 {
-  return ldp_pselect (nfds, readfds, writefds, exceptfds, timeout, 0);
+  return ldp_pselect (nfds, readfds, writefds, exceptfds, timeout, NULL, 0);
 }
 #endif
 
@@ -1161,7 +1186,12 @@ ldp_copy_ep_to_sockaddr (__SOCKADDR_ARG addr, socklen_t * __restrict len,
 	  copy_len = *len - sa_len;
 	  if (copy_len > 0)
 	    memcpy (((struct sockaddr_in6 *) addr)->sin6_addr.
-		    __in6_u.__u6_addr8, ep->ip, copy_len);
+#ifndef __FreeBSD__
+            __in6_u.__u6_addr8,
+#else
+            __u6_addr.__u6_addr8,
+#endif
+            ep->ip, copy_len);
 	  break;
 
 	default:

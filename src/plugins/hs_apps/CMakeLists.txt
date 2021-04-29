@@ -12,6 +12,21 @@
 # limitations under the License.
 
 ##############################################################################
+# FreeBSD - use epoll-shim
+##############################################################################
+set(FREEBSD_LIBS "")
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  find_path(EPOLL_SHIM_INCLUDE_DIR NAMES libepoll-shim/sys/epoll.h HINTS /usr/local/include)
+  find_library(EPOLL_SHIM_LIB NAMES epoll-shim HINTS /usr/local/lib)
+  
+  if(EPOLL_SHIM_INCLUDE_DIR AND EPOLL_SHIM_LIB)
+    message(STATUS "Found epoll-shim in ${EPOLL_SHIM_INCLUDE_DIR}")
+    include_directories(${EPOLL_SHIM_INCLUDE_DIR})
+    string(JOIN " " FREEBSD_LIBS "${EPOLL_SHIM_LIB}")
+  endif()
+endif()
+
+##############################################################################
 # vpp builtin hs apps
 ##############################################################################
 add_vpp_plugin(hs_apps
@@ -36,7 +51,7 @@ if(VPP_BUILD_HS_SAPI_APPS)
     sapi/vpp_echo_proto_quic.c
     sapi/vpp_echo_proto_tcp.c
     sapi/vpp_echo_proto_udp.c
-    LINK_LIBRARIES vlibmemoryclient svm vppinfra pthread m rt
+    LINK_LIBRARIES vlibmemoryclient svm vppinfra pthread m rt ${FREEBSD_LIBS}
     DEPENDS api_headers
   )
 endif(VPP_BUILD_HS_SAPI_APPS)
@@ -44,18 +59,18 @@ endif(VPP_BUILD_HS_SAPI_APPS)
 ##############################################################################
 # vcl tests
 ##############################################################################
-#option(VPP_BUILD_VCL_TESTS "Build vcl tests." ON)
-#if(VPP_BUILD_VCL_TESTS)
-#  foreach(test
-#    vcl_test_server
-#    vcl_test_client
-#    sock_test_server
-#    sock_test_client
-#  )
-#    add_vpp_executable(${test}
-#      SOURCES "vcl/${test}.c"
-#      LINK_LIBRARIES vppcom pthread
-#      NO_INSTALL
-#    )
-#  endforeach()
-#endif(VPP_BUILD_VCL_TESTS)
+option(VPP_BUILD_VCL_TESTS "Build vcl tests." ON)
+if(VPP_BUILD_VCL_TESTS)
+  foreach(test
+    vcl_test_server
+    vcl_test_client
+    sock_test_server
+    sock_test_client
+  )
+    add_vpp_executable(${test}
+      SOURCES "vcl/${test}.c"
+      LINK_LIBRARIES vppcom pthread ${FREEBSD_LIBS}
+      NO_INSTALL
+    )
+  endforeach()
+endif(VPP_BUILD_VCL_TESTS)

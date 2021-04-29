@@ -17,12 +17,21 @@
 #define included_ldp_glibc_socket_h
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 
+#ifdef __FreeBSD__
+#include <socket.h>
+#include <libepoll-shim/sys/epoll.h>
+#define __THROW
+#define __wur                   __attribute__((__warn_unused_result__))
+#define __SOCKADDR_ARG		    struct sockaddr *__restrict
+#define __CONST_SOCKADDR_ARG	__const struct sockaddr *
+#else
+#include <sys/socket.h>
 #include <sys/epoll.h>
+#endif
 
 #include <signal.h>
 #include <poll.h>

@@ -20,10 +20,15 @@
 #include <errno.h>
 #include <sys/fcntl.h>
 #include <sys/poll.h>
+
 #ifndef __FreeBSD__
 #include <sys/epoll.h>
 #else
+#include <libepoll-shim/sys/epoll.h>
 #include <sys/types.h>
+#ifndef EBADFD
+#define EBADFD EBADF
+#endif
 #endif
 
 /* *INDENT-OFF* */

@@ -24,7 +24,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <hs_apps/vcl/vcl_test.h>
+
+#ifdef __FreeBSD__
+#include <libepoll-shim/sys/epoll.h>
+#else
 #include <sys/epoll.h>
+#endif
+
 #include <vppinfra/mem.h>
 #include <pthread.h>
 

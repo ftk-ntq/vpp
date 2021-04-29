@@ -25,7 +25,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+
+#ifdef __FreeBSD__
+#include <libepoll-shim/sys/epoll.h>
+#else
 #include <sys/epoll.h>
+#endif
+
 #include <sys/un.h>
 
 #define SOCK_SERVER_MAX_TEST_CONN  10

@@ -12,6 +12,21 @@
 # limitations under the License.
 
 ##############################################################################
+# FreeBSD - use epoll-shim
+##############################################################################
+set(FREEBSD_LIBS "")
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+  find_path(EPOLL_SHIM_INCLUDE_DIR NAMES libepoll-shim/sys/epoll.h HINTS /usr/local/include)
+  find_library(EPOLL_SHIM_LIB NAMES epoll-shim HINTS /usr/local/lib)
+  
+  if(EPOLL_SHIM_INCLUDE_DIR AND EPOLL_SHIM_LIB)
+    message(STATUS "Found epoll-shim in ${EPOLL_SHIM_INCLUDE_DIR}")
+    include_directories(${EPOLL_SHIM_INCLUDE_DIR} "../../include-freebsd/")
+    string(JOIN " " FREEBSD_LIBS "${EPOLL_SHIM_LIB}")
+  endif()
+endif()
+
+##############################################################################
 # vppcom shared library
 ##############################################################################
 add_vpp_library(vppcom
@@ -24,7 +39,7 @@ add_vpp_library(vppcom
   vcl_sapi.c
 
   LINK_LIBRARIES
-  vppinfra svm vlibmemoryclient rt pthread
+  vppinfra svm vlibmemoryclient rt pthread ${FREEBSD_LIBS}
 
   DEPENDS
   api_headers
@@ -36,7 +51,7 @@ add_vpp_library(vcl_ldpreload
   ldp.c
 
   LINK_LIBRARIES
-  vppinfra svm vlibmemoryclient rt pthread vppcom dl
+  vppinfra svm vlibmemoryclient rt pthread vppcom dl ${FREEBSD_LIBS}
 )
 
 add_vpp_headers(vcl

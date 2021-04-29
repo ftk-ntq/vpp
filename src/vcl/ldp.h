@@ -23,6 +23,19 @@
 #define LDP_DEBUG_INIT 0
 #endif
 
+#ifdef __FreeBSD__
+#include <netinet/in.h>
+#ifndef SOL_TCP
+#define SOL_TCP IPPROTO_TCP
+#endif
+#ifndef SOL_IPV6
+#define SOL_IPV6 IPPROTO_IPV6
+#endif
+#ifndef TCP_CORK
+#define TCP_CORK TCP_NOPUSH
+#endif
+#endif
+
 #include <vppinfra/error.h>
 #include <vppinfra/types.h>
 #include <vcl/ldp_glibc_socket.h>
