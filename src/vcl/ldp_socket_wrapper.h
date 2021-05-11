@@ -59,10 +59,16 @@
 #define included_ldp_socket_wrapper_h
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
+
+#ifdef __FreeBSD__
+#include <libepoll-shim/sys/epoll.h>
+#else
+#include <sys/socket.h>
 #include <sys/epoll.h>
+#endif
+
 #include <poll.h>
 #include <sys/uio.h>
 #include <stdlib.h>

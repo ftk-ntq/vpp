@@ -22,6 +22,10 @@
 #include <string.h>
 #include <vcl/vppcom.h>
 
+#ifdef __FreeBSD__
+#include <netinet/in.h>
+#endif
+
 #define vtfail(_fn, _rv)						\
 {									\
   errno = -_rv;								\
